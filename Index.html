@@ -7,13 +7,13 @@
     .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
     .step { display: none; }
     .active { display: block; }
-    input { width: 100%; padding: 8px; margin: 8px 0 16px 0; box-sizing: border-box; }
+    input, textarea { width: 100%; padding: 8px; margin: 8px 0 16px 0; box-sizing: border-box; }
     button { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px; }
     .btn-next { background-color: #007bff; color: white; }
     .btn-back { background-color: #6c757d; color: white; }
     .btn-restart { background-color: #dc3545; color: white; float: right; font-size: 12px; }
-    .loading { color: orange; display: none; font-size: 0.9em; }
-    .header { overflow: hidden; border-bottom: 1px solid #eee; margin-bottom: 20px; }
+    .loading { color: orange; display: none; font-size: 0.9em; margin-bottom: 10px; }
+    .header { overflow: hidden; border-bottom: 1px solid #eee; margin-bottom: 20px; padding-bottom: 10px; }
   </style>
 </head>
 <body>
@@ -55,8 +55,20 @@
 
   <div id="step3" class="step">
     <h3>ขั้นตอนที่ 3: ข้อมูลนิสิต</h3>
-    <p>บันทึกวิชาและกลุ่มเรียบร้อยแล้ว เตรียมจัดการรายชื่อนิสิต...</p>
+    <p style="color: #666;">รหัสกลุ่ม: <strong id="showGroupId">-</strong></p>
+    
+    <label>รายชื่อนิสิต (คัดลอก "รหัสนิสิต" และ "ชื่อ-นามสกุล" จาก Excel มาวางได้เลย)</label>
+    <textarea id="studentList" rows="8" placeholder="640001  นายสมชาย ใจดี&#10;640002  นางสาวสมหญิง รักเรียน" style="font-family: monospace;"></textarea>
+    
+    <div id="loading3" class="loading">กำลังบันทึกข้อมูลนิสิต... (อาจใช้เวลาสักครู่)</div>
     <button class="btn-back" onclick="changeStep(2)">ย้อนกลับ</button>
+    <button class="btn-next" onclick="submitStep3()">บันทึกและถัดไป</button>
+  </div>
+
+  <div id="step4" class="step">
+    <h3>ขั้นตอนที่ 4: โครงสร้างคะแนน</h3>
+    <p>เตรียมตั้งค่าโครงสร้างคะแนน (MEQ, MCQ, etc.)</p>
+    <button class="btn-back" onclick="changeStep(3)">ย้อนกลับ</button>
   </div>
 
 </div>
@@ -95,8 +107,40 @@
     
     google.script.run.withSuccessHandler(function() {
       document.getElementById('loading2').style.display = 'none';
+      document.getElementById('showGroupId').innerText = data.groupId; // เพิ่มโชว์กลุ่มในสเตป 3
       changeStep(3);
     }).saveGroup(data);
+  }
+
+  function submitStep3() {
+    var rawData = document.getElementById('studentList').value;
+    if(!rawData.trim()) { alert("กรุณาวางรายชื่อนิสิตก่อนค่ะ"); return; }
+    
+    var lines = rawData.split('\n');
+    var studentArray = [];
+    
+    for(var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if(line) {
+        var parts = line.split(/\s+/); // แยกเว้นวรรค/Tab
+        var studentId = parts[0]; 
+        var studentName = parts.slice(1).join(" "); // รวมชื่อ-สกุลกลับมา
+        studentArray.push([studentId, studentName]);
+      }
+    }
+    
+    var data = {
+      groupId: document.getElementById('groupId').value,
+      students: studentArray
+    };
+    
+    document.getElementById('loading3').style.display = 'block';
+    
+    // ส่งไปบันทึกที่ฟังก์ชัน saveStudents ใน Code.gs
+    google.script.run.withSuccessHandler(function() {
+      document.getElementById('loading3').style.display = 'none';
+      changeStep(4);
+    }).saveStudents(data);
   }
 </script>
 
