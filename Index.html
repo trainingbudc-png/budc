@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      .step { display: none; }
+      .active { display: block; }
+    </style>
+  </head>
+  <body>
+    <div id="step1" class="step active">
+      <h2>ขั้นตอนที่ 1: หน้ารายวิชา</h2>
+      รหัสวิชา: <input type="text" id="subId"><br>
+      ชื่อวิชา: <input type="text" id="subName"><br>
+      <button onclick="nextStep(2)">ถัดไป</button>
+    </div>
+
+    <div id="step2" class="step">
+      <h2>ขั้นตอนที่ 2: หน้ากลุ่มเรียน</h2>
+      <button onclick="nextStep(1)">ย้อนกลับ</button>
+      <button onclick="nextStep(3)">ถัดไป</button>
+    </div>
+
+    <script>
+      function nextStep(stepNumber) {
+        // ซ่อนทุกหน้า
+        document.querySelectorAll('.step').forEach(div => div.classList.remove('active'));
+        // แสดงเฉพาะหน้าที่จะไป
+        document.getElementById('step' + stepNumber).classList.add('active');
+      }
+      
+      // ฟังก์ชันส่งข้อมูลไปบันทึกใน Sheet
+      function submitData() {
+        var data = {
+          id: document.getElementById('subId').value,
+          name: document.getElementById('subName').value
+        };
+        google.script.run.withSuccessHandler(function(res){
+          alert(res);
+        }).saveSubject(data);
+      }
+    </script>
+  </body>
+</html>
