@@ -1,4 +1,67 @@
-// --- เอาลิงก์ Web App ที่ Deploy ล่าสุดมาใส่ตรงนี้ ---
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: sans-serif; padding: 20px; background-color: #f4f5f7; }
+    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
+    .step { display: none; }
+    .active { display: block; }
+    input, textarea { width: 100%; padding: 8px; margin: 8px 0 16px 0; box-sizing: border-box; }
+    button { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px; }
+    .btn-next { background-color: #007bff; color: white; }
+    .btn-back { background-color: #6c757d; color: white; }
+    .loading { color: orange; display: none; font-size: 0.9em; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h2 style="border-bottom: 1px solid #eee; padding-bottom: 10px;">ตั้งค่าฟอร์มคะแนน</h2>
+
+  <div id="step1" class="step active">
+    <h3>ขั้นตอนที่ 1: ข้อมูลรายวิชา</h3>
+    <label>รหัสวิชา</label>
+    <input type="text" id="subjectId" placeholder="เช่น 499414">
+    <label>ชื่อวิชา</label>
+    <input type="text" id="subjectName" placeholder="เช่น ทฤษฎีทางศัลยศาสตร์ 1">
+    <div id="loading1" class="loading">กำลังบันทึกข้อมูล...</div>
+    <button class="btn-next" onclick="submitStep1()">บันทึกและถัดไป</button>
+  </div>
+
+  <div id="step2" class="step">
+    <h3>ขั้นตอนที่ 2: ข้อมูลกลุ่มเรียน</h3>
+    <p style="color: #666;">รหัสวิชา: <strong id="showSubjectId">-</strong></p>
+    <label>รหัสกลุ่ม</label>
+    <input type="text" id="groupId" placeholder="เช่น G01">
+    <label>ชื่อกลุ่ม</label>
+    <input type="text" id="groupName" placeholder="เช่น กลุ่ม 1">
+    <div id="loading2" class="loading">กำลังบันทึกข้อมูล...</div>
+    <button class="btn-back" onclick="changeStep(1)">ย้อนกลับ</button>
+    <button class="btn-next" onclick="submitStep2()">บันทึกและถัดไป</button>
+  </div>
+
+  <div id="step3" class="step">
+    <h3>ขั้นตอนที่ 3: ข้อมูลนิสิต</h3>
+    <p style="color: #666;">รหัสกลุ่ม: <strong id="showGroupId">-</strong></p>
+    <label>รายชื่อนิสิต (คัดลอก รหัส และ ชื่อ-สกุล จาก Excel มาวาง)</label>
+    <textarea id="studentList" rows="8" placeholder="640001 นายสมชาย ใจดี"></textarea>
+    <div id="loading3" class="loading">กำลังบันทึกข้อมูล...</div>
+    <button class="btn-back" onclick="changeStep(2)">ย้อนกลับ</button>
+    <button class="btn-next" onclick="submitStep3()">บันทึกและถัดไป</button>
+  </div>
+
+  <div id="step4" class="step">
+    <h3>ขั้นตอนที่ 4: โครงสร้างคะแนน</h3>
+    <p>สำเร็จ! ข้อมูลนิสิตเข้า Google Sheets แล้ว</p>
+    <button class="btn-back" onclick="changeStep(3)">ย้อนกลับ</button>
+  </div>
+
+</div>
+
+<script>
+  // 👉👉 นำ URL ที่ได้จากขั้นตอนที่ 1 มาใส่ตรงนี้ 👈👈
   const API_URL = "https://script.google.com/macros/s/AKfycbwH6kT_7xgH0YGytHLENKBmNY5yD34syaMwzFu_nlhbbBlxjZuic-KgOB4S37JSepE7/exec";
 
   function changeStep(n) {
@@ -6,82 +69,55 @@
     document.getElementById('step' + n).classList.add('active');
   }
 
-  // สร้างฟังก์ชันกลางสำหรับยิงข้อมูลไปหา Google Apps Script
-  function sendDataToGoogle(actionName, payloadData, loadingElementId, onSuccess) {
-    document.getElementById(loadingElementId).style.display = 'block';
-
+  function sendDataToGoogle(actionName, payloadData, loadingId, onSuccess) {
+    document.getElementById(loadingId).style.display = 'block';
     fetch(API_URL, {
       method: 'POST',
-      // ใช้ text/plain เพื่อป้องกันปัญหา CORS Policy ข้ามโดเมน
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ action: actionName, payload: payloadData })
     })
-    .then(response => response.json())
+    .then(res => res.json())
     .then(result => {
-      document.getElementById(loadingElementId).style.display = 'none';
-      if(result.status === "success") {
-        onSuccess(result);
-      } else {
-        alert("เกิดข้อผิดพลาด: " + result.message);
-      }
+      document.getElementById(loadingId).style.display = 'none';
+      if(result.status === "success") { onSuccess(result); } 
+      else { alert("Error: " + result.message); }
     })
-    .catch(error => {
-      document.getElementById(loadingElementId).style.display = 'none';
-      alert("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
-      console.error(error);
+    .catch(err => {
+      document.getElementById(loadingId).style.display = 'none';
+      alert("เชื่อมต่อไม่สำเร็จ"); console.error(err);
     });
   }
 
   function submitStep1() {
-    var data = {
-      subjectId: document.getElementById('subjectId').value,
-      subjectName: document.getElementById('subjectName').value
-    };
-    if(!data.subjectId || !data.subjectName) { alert("กรุณากรอกให้ครบค่ะ"); return; }
-    
+    var data = { subjectId: document.getElementById('subjectId').value, subjectName: document.getElementById('subjectName').value };
+    if(!data.subjectId || !data.subjectName) return alert("กรอกให้ครบค่ะ");
     sendDataToGoogle("saveSubject", data, 'loading1', function() {
-      document.getElementById('showSubjectId').innerText = data.subjectId;
-      changeStep(2);
+      document.getElementById('showSubjectId').innerText = data.subjectId; changeStep(2);
     });
   }
 
   function submitStep2() {
-    var data = {
-      subjectId: document.getElementById('subjectId').value,
-      groupId: document.getElementById('groupId').value,
-      groupName: document.getElementById('groupName').value
-    };
-    if(!data.groupId || !data.groupName) { alert("กรุณากรอกให้ครบค่ะ"); return; }
-    
+    var data = { subjectId: document.getElementById('subjectId').value, groupId: document.getElementById('groupId').value, groupName: document.getElementById('groupName').value };
+    if(!data.groupId || !data.groupName) return alert("กรอกให้ครบค่ะ");
     sendDataToGoogle("saveGroup", data, 'loading2', function() {
-      document.getElementById('showGroupId').innerText = data.groupId;
-      changeStep(3);
+      document.getElementById('showGroupId').innerText = data.groupId; changeStep(3);
     });
   }
 
   function submitStep3() {
     var rawData = document.getElementById('studentList').value;
-    if(!rawData.trim()) { alert("กรุณาวางรายชื่อนิสิตก่อนค่ะ"); return; }
-    
-    var lines = rawData.split('\n');
-    var studentArray = [];
-    
-    for(var i = 0; i < lines.length; i++) {
+    if(!rawData.trim()) return alert("วางข้อมูลก่อนค่ะ");
+    var lines = rawData.split('\n'), studentArray = [];
+    for(var i=0; i<lines.length; i++) {
       var line = lines[i].trim();
       if(line) {
         var parts = line.split(/\s+/);
-        var studentId = parts[0]; 
-        var studentName = parts.slice(1).join(" ");
-        studentArray.push([studentId, studentName]);
+        studentArray.push([parts[0], parts.slice(1).join(" ")]);
       }
     }
-    
-    var data = {
-      groupId: document.getElementById('groupId').value,
-      students: studentArray
-    };
-    
-    sendDataToGoogle("saveStudents", data, 'loading3', function() {
-      changeStep(4);
-    });
+    var data = { groupId: document.getElementById('groupId').value, students: studentArray };
+    sendDataToGoogle("saveStudents", data, 'loading3', function() { changeStep(4); });
   }
+</script>
+</body>
+</html>
