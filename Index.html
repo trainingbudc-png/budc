@@ -3,16 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ตั้งค่าฟอร์มคะแนน</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     body { font-family: sans-serif; padding: 20px; background-color: #f4f5f7; }
     .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
     .step { display: none; }
     .active { display: block; }
-    input, textarea { width: 100%; padding: 8px; margin: 8px 0 16px 0; box-sizing: border-box; }
+    input { width: 100%; padding: 8px; margin: 8px 0 16px 0; box-sizing: border-box; }
     button { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px; }
     .btn-next { background-color: #007bff; color: white; }
     .btn-back { background-color: #6c757d; color: white; }
+    .btn-add { background-color: #28a745; color: white; }
+    .btn-delete { background-color: #dc3545; color: white; padding: 4px 8px; font-size: 0.8em; margin-left: 10px; }
     .loading { color: orange; display: none; font-size: 0.9em; margin-bottom: 10px; }
+    .preview-box { background: #f8f9fa; border: 1px solid #ddd; padding: 10px; max-height: 150px; overflow-y: auto; margin-bottom: 15px; }
+    ul { list-style-type: none; padding: 0; margin: 0; }
+    li { padding: 5px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
   </style>
 </head>
 <body>
@@ -45,30 +52,115 @@
   <div id="step3" class="step">
     <h3>ขั้นตอนที่ 3: ข้อมูลนิสิต</h3>
     <p style="color: #666;">รหัสกลุ่ม: <strong id="showGroupId">-</strong></p>
-    <label>รายชื่อนิสิต (คัดลอก รหัส และ ชื่อ-สกุล จาก Excel มาวาง)</label>
-    <textarea id="studentList" rows="8" placeholder="640001 นายสมชาย ใจดี"></textarea>
+
+    <div style="background: #e9ecef; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
+      <label style="display: block; margin-bottom: 10px; font-weight: bold;">อัปโหลดไฟล์รายชื่อ (Excel หรือ CSV)</label>
+      <input type="file" id="fileUpload" accept=".csv, .xlsx, .xls" style="display: none;" onchange="handleFileUpload(event)">
+      <button class="btn-add" onclick="document.getElementById('fileUpload').click()">📁 อัปโหลดไฟล์รายชื่อ</button>
+      <div id="fileNameDisplay" style="margin-top: 10px; color: #555; font-size: 0.9em;">(คอลัมน์ A = รหัส, คอลัมน์ B = ชื่อ)</div>
+    </div>
+
+    <div style="text-align: center; margin-bottom: 15px; color: #888;">--- หรือ เพิ่มรายบุคคล ---</div>
+
+    <div style="display: flex; gap: 10px; align-items: flex-start;">
+      <div style="flex: 1;"><input type="text" id="manualId" placeholder="รหัสนิสิต" style="margin-bottom: 0;"></div>
+      <div style="flex: 2;"><input type="text" id="manualName" placeholder="ชื่อ-สกุล" style="margin-bottom: 0;"></div>
+      <button class="btn-add" style="margin-top: 0; padding: 8px 15px;" onclick="addManualStudent()">เพิ่ม</button>
+    </div>
+
+    <h4 style="margin-bottom: 5px;">รายชื่อเตรียมบันทึก (<span id="studentCount">0</span> คน)</h4>
+    <div class="preview-box">
+      <ul id="previewList"></ul>
+    </div>
+
     <div id="loading3" class="loading">กำลังบันทึกข้อมูล...</div>
     <button class="btn-back" onclick="changeStep(2)">ย้อนกลับ</button>
-    <button class="btn-next" onclick="submitStep3()">บันทึกและถัดไป</button>
+    <button class="btn-next" onclick="submitStep3()">บันทึกเข้า Google Sheets</button>
   </div>
 
   <div id="step4" class="step">
-    <h3>ขั้นตอนที่ 4: โครงสร้างคะแนน</h3>
-    <p>สำเร็จ! ข้อมูลนิสิตเข้า Google Sheets แล้ว</p>
+    <h3>สำเร็จ! 🎉</h3>
+    <p>ข้อมูลวิชา กลุ่ม และรายชื่อนิสิต ถูกส่งเข้า Google Sheets เรียบร้อยแล้วค่ะ</p>
     <button class="btn-back" onclick="changeStep(3)">ย้อนกลับ</button>
   </div>
 
 </div>
 
 <script>
-  // 👉👉 นำ URL ที่ได้จากขั้นตอนที่ 1 มาใส่ตรงนี้ 👈👈
+  // 👉👉 อย่าลืมเอา URL ของ Google Apps Script ของคุณมาใส่ตรงนี้นะคะ 👈👈
   const API_URL = "https://script.google.com/macros/s/AKfycbxYKzFu-QPynDHiHks3XGPO2Z4uLV4GEv3cR-3okkh3W_RLVH0b-2-ZKsKAI9fd12ll/exec";
+
+  let pendingStudents = []; // กล่องเก็บรายชื่อเตรียมบันทึก
 
   function changeStep(n) {
     document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
     document.getElementById('step' + n).classList.add('active');
   }
 
+  // --- ส่วนฟังก์ชันของสเตป 3 ---
+  
+  // อัปเดตหน้าจอรายชื่อ
+  function renderPreview() {
+    const list = document.getElementById('previewList');
+    list.innerHTML = '';
+    pendingStudents.forEach((std, index) => {
+      list.innerHTML += `<li>${std[0]} - ${std[1]} <button class="btn-delete" onclick="removeStudent(${index})">ลบ</button></li>`;
+    });
+    document.getElementById('studentCount').innerText = pendingStudents.length;
+  }
+
+  // เพิ่มรายบุคคล
+  function addManualStudent() {
+    const id = document.getElementById('manualId').value.trim();
+    const name = document.getElementById('manualName').value.trim();
+    if(!id || !name) return alert("กรุณากรอกรหัสและชื่อให้ครบค่ะ");
+    
+    pendingStudents.push([id, name]);
+    document.getElementById('manualId').value = '';
+    document.getElementById('manualName').value = '';
+    renderPreview();
+  }
+
+  // ลบคนออกจากคิว
+  function removeStudent(index) {
+    pendingStudents.splice(index, 1);
+    renderPreview();
+  }
+
+  // ระบบอ่านไฟล์ Excel / CSV
+  function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if(!file) return;
+    document.getElementById('fileNameDisplay').innerText = "กำลังอ่านไฟล์: " + file.name;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, {type: 'array'});
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      const json = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+
+      // สมมติว่าไฟล์คอลัมน์ A = รหัส, คอลัมน์ B = ชื่อ
+      for(let i=0; i<json.length; i++) {
+        let row = json[i];
+        if(!row || row.length < 2) continue;
+        
+        let id = String(row[0]).trim();
+        let name = String(row[1]).trim();
+        
+        // ข้ามบรรทัดถ้าเป็นหัวตารางหรือข้อมูลว่าง
+        if(id && name && id !== "รหัสนิสิต" && id !== "รหัส") {
+          pendingStudents.push([id, name]);
+        }
+      }
+      document.getElementById('fileNameDisplay').innerText = "ดึงข้อมูลจากไฟล์เรียบร้อยแล้ว!";
+      renderPreview();
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  // --- ส่วนส่งข้อมูลไป Google Sheets ---
   function sendDataToGoogle(actionName, payloadData, loadingId, onSuccess) {
     document.getElementById(loadingId).style.display = 'block';
     fetch(API_URL, {
@@ -105,17 +197,11 @@
   }
 
   function submitStep3() {
-    var rawData = document.getElementById('studentList').value;
-    if(!rawData.trim()) return alert("วางข้อมูลก่อนค่ะ");
-    var lines = rawData.split('\n'), studentArray = [];
-    for(var i=0; i<lines.length; i++) {
-      var line = lines[i].trim();
-      if(line) {
-        var parts = line.split(/\s+/);
-        studentArray.push([parts[0], parts.slice(1).join(" ")]);
-      }
-    }
-    var data = { groupId: document.getElementById('groupId').value, students: studentArray };
+    if(pendingStudents.length === 0) return alert("ยังไม่มีรายชื่อนิสิตให้บันทึกเลยค่ะ");
+    var data = { 
+      groupId: document.getElementById('groupId').value, 
+      students: pendingStudents 
+    };
     sendDataToGoogle("saveStudents", data, 'loading3', function() { changeStep(4); });
   }
 </script>
