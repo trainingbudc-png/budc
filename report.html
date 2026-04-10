@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>รายงานผลการเรียน</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background-color: #f0f2f5; }
+    .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 800px; margin: auto; }
+    h2 { color: #1a73e8; border-bottom: 2px solid #e8eaed; padding-bottom: 10px; }
+    select { width: 100%; padding: 10px; margin: 10px 0 20px 0; border: 1px solid #dadce0; border-radius: 4px; }
+    button { background-color: #1a73e8; color: white; border: none; padding: 12px; border-radius: 4px; width: 100%; cursor: pointer; font-size: 16px; font-weight: bold; }
+    button:hover { background-color: #1557b0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 25px; background: white; }
+    th, td { border: 1px solid #e8eaed; padding: 12px; text-align: left; }
+    th { background-color: #f8f9fa; color: #5f6368; }
+    .grade-badge { padding: 4px 10px; border-radius: 12px; font-weight: bold; background: #e8f0fe; color: #1967d2; }
+    .loading { text-align: center; color: #666; margin: 20px 0; display: none; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h2>📊 สรุปคะแนนและตัดเกรดอัตโนมัติ</h2>
+  
+  <div id="selectionArea">
+    <label>เลือกรายวิชา</label>
+    <select id="subjectSelect" onchange="updateGroups()"><option value="">-- โหลดข้อมูลวิชา... --</option></select>
+    
+    <label>เลือกกลุ่มเรียน</label>
+    <select id="groupSelect"><option value="">-- กรุณาเลือกกลุ่ม --</option></select>
+    
+    <button onclick="getReport()">ดูผลสรุปและตัดเกรด</button>
+  </div>
+
+  <div id="loader" class="loading">กำลังประมวลผลเกรด... กรุณารอสักครู่</div>
+
+  <div id="resultArea" style="display:none;">
+    <table id="reportTable">
+      <thead>
+        <tr>
+          <th>รหัสนิสิต</th>
+          <th>ชื่อ-นามสกุล</th>
+          <th>คะแนนรวม</th>
+          <th>เกรด</th>
+        </tr>
+      </thead>
+      <tbody id="reportContent"></tbody>
+    </table>
+    <button style="margin-top: 20px; background-color: #34a853;" onclick="window.print()">🖨️ พิมพ์รายงาน (PDF)</button>
+  </div>
+</div>
+
+<script>
+  const API_URL = "https://script.google.com/macros/s/AKfycbxYKzFu-QPynDHiHks3XGPO2Z4uLV4GEv3cR-3okkh3W_RLVH0b-2-ZKsKAI9fd12ll/exec";
+  let allData = {};
+
+  // โหลดข้อมูลวิชาเมื่อเปิดหน้าเว็บ
+  window.onload = function() {
+    fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "getInitialData" }) })
+    .then(res => res.json())
+    .then(result => {
+      allData = result.data;
+      const subSelect = document.getElementById('subjectSelect');
+      subSelect.innerHTML = '<option value="">-- กรุณาเลือกวิชา --</option>';
+      allData.subjects.forEach(sub => {
+        subSelect.innerHTML += `<option value="${sub[0]}">${sub[0]} - ${sub[1]}</option>`;
+      });
+    });
+  };
+
+  function updateGroups() {
+    const subId = document.getElementById('subjectSelect').value;
+    const grpSelect = document.getElementById('groupSelect');
+    grpSelect.innerHTML = '<option value="">-- กรุณาเลือกกลุ่ม --</option>';
+    if(!subId) return;
+    allData.groups.filter(g => g[2] == subId).forEach(g => {
+      grpSelect.innerHTML += `<option value="${g[0]}">${g[0]} - ${g[1]}</option>`;
+    });
+  }
+
+  function getReport() {
+    const subId = document.getElementById('subjectSelect').value;
+    const grpId = document.getElementById('groupSelect').value;
+    if(!subId || !grpId) return alert("กรุณาเลือกวิชาและกลุ่มให้ครบค่ะ");
+
+    document.getElementById('loader').style.display = 'block';
+    document.getElementById('resultArea').style.display = 'none';
+
+    fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: "getReportData", payload: { subjectId: subId, groupId: grpId } })
+    })
+    .then(res => res.json())
+    .then(result => {
+      document.getElementById('loader').style.display = 'none';
+      const content = document.getElementById('reportContent');
+      content.innerHTML = '';
+      
+      if(result.data.length === 0) return alert("ไม่พบข้อมูลคะแนนในวิชา/กลุ่มที่เลือกค่ะ");
+
+      result.data.forEach(item => {
+        content.innerHTML += `
+          <tr>
+            <td>${item.id}</td>
+            <td>${item.name}</td>
+            <td style="font-weight:bold;">${item.total.toFixed(2)}</td>
+            <td><span class="grade-badge">${item.grade}</span></td>
+          </tr>
+        `;
+      });
+      document.getElementById('resultArea').style.display = 'block';
+    });
+  }
+</script>
+</body>
+</html>
