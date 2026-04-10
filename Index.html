@@ -20,6 +20,7 @@
     .preview-box { background: #f8f9fa; border: 1px solid #ddd; padding: 10px; max-height: 150px; overflow-y: auto; margin-bottom: 15px; }
     ul { list-style-type: none; padding: 0; margin: 0; }
     li { padding: 5px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+    .input-group { display: flex; gap: 10px; align-items: flex-start; }
   </style>
 </head>
 <body>
@@ -28,7 +29,7 @@
   <h2 style="border-bottom: 1px solid #eee; padding-bottom: 10px;">ตั้งค่าฟอร์มคะแนน</h2>
 
   <div id="step1" class="step active">
-    <h3>1: ข้อมูลรายวิชา</h3>
+    <h3>ขั้นตอนที่ 1: ข้อมูลรายวิชา</h3>
     <label>รหัสวิชา</label>
     <input type="text" id="subjectId" placeholder="เช่น 499414">
     <label>ชื่อวิชา</label>
@@ -38,7 +39,7 @@
   </div>
 
   <div id="step2" class="step">
-    <h3>2: ข้อมูลกลุ่มเรียน</h3>
+    <h3>ขั้นตอนที่ 2: ข้อมูลกลุ่มเรียน</h3>
     <p style="color: #666;">รหัสวิชา: <strong id="showSubjectId">-</strong></p>
     <label>รหัสกลุ่ม</label>
     <input type="text" id="groupId" placeholder="เช่น G01">
@@ -50,61 +51,66 @@
   </div>
 
   <div id="step3" class="step">
-    <h3>3: ข้อมูลนิสิต</h3>
+    <h3>ขั้นตอนที่ 3: ข้อมูลนิสิต</h3>
     <p style="color: #666;">รหัสกลุ่ม: <strong id="showGroupId">-</strong></p>
-
     <div style="background: #e9ecef; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
       <label style="display: block; margin-bottom: 10px; font-weight: bold;">อัปโหลดไฟล์รายชื่อ (Excel หรือ CSV)</label>
       <input type="file" id="fileUpload" accept=".csv, .xlsx, .xls" style="display: none;" onchange="handleFileUpload(event)">
       <button class="btn-add" onclick="document.getElementById('fileUpload').click()">📁 อัปโหลดไฟล์รายชื่อ</button>
       <div id="fileNameDisplay" style="margin-top: 10px; color: #555; font-size: 0.9em;">(คอลัมน์ A = รหัส, คอลัมน์ B = ชื่อ)</div>
     </div>
-
     <div style="text-align: center; margin-bottom: 15px; color: #888;">--- หรือ เพิ่มรายบุคคล ---</div>
-
-    <div style="display: flex; gap: 10px; align-items: flex-start;">
+    <div class="input-group">
       <div style="flex: 1;"><input type="text" id="manualId" placeholder="รหัสนิสิต" style="margin-bottom: 0;"></div>
       <div style="flex: 2;"><input type="text" id="manualName" placeholder="ชื่อ-สกุล" style="margin-bottom: 0;"></div>
       <button class="btn-add" style="margin-top: 0; padding: 8px 15px;" onclick="addManualStudent()">เพิ่ม</button>
     </div>
-
     <h4 style="margin-bottom: 5px;">รายชื่อเตรียมบันทึก (<span id="studentCount">0</span> คน)</h4>
-    <div class="preview-box">
-      <ul id="previewList"></ul>
-    </div>
-
+    <div class="preview-box"><ul id="previewList"></ul></div>
     <div id="loading3" class="loading">กำลังบันทึกข้อมูล...</div>
     <button class="btn-back" onclick="changeStep(2)">ย้อนกลับ</button>
     <button class="btn-next" onclick="submitStep3()">บันทึกและถัดไป</button>
   </div>
 
   <div id="step4" class="step">
-    <h3>4: หัวข้อการประเมิน</h3>
+    <h3>ขั้นตอนที่ 4: หัวข้อการประเมิน</h3>
     <p style="color: #666;">สำหรับวิชา: <strong id="showSubjectIdForTopic">-</strong></p>
-
-    <div style="display: flex; gap: 10px; align-items: flex-start;">
-      <div style="flex: 2;">
-        <input type="text" id="topicName" placeholder="ชื่อหัวข้อ (เช่น กลางภาค)" style="margin-bottom: 0;">
-      </div>
-      <div style="flex: 1;">
-        <input type="number" id="topicScore" placeholder="คะแนนเต็ม" style="margin-bottom: 0;">
-      </div>
+    <div class="input-group">
+      <div style="flex: 2;"><input type="text" id="topicName" placeholder="ชื่อหัวข้อ (เช่น กลางภาค)" style="margin-bottom: 0;"></div>
+      <div style="flex: 1;"><input type="number" id="topicScore" placeholder="คะแนนเต็ม" style="margin-bottom: 0;"></div>
       <button class="btn-add" style="margin-top: 0; padding: 8px 15px;" onclick="addTopic()">เพิ่ม</button>
     </div>
-
     <h4 style="margin-bottom: 5px;">หัวข้อที่เตรียมบันทึก (รวม <span id="totalScore">0</span> คะแนน)</h4>
-    <div class="preview-box">
-      <ul id="topicList"></ul>
-    </div>
-
+    <div class="preview-box"><ul id="topicList"></ul></div>
     <div id="loading4" class="loading">กำลังบันทึกข้อมูล...</div>
     <button class="btn-back" onclick="changeStep(3)">ย้อนกลับ</button>
-    <button class="btn-next" onclick="submitStep4()">บันทึกหัวข้อทั้งหมด</button>
+    <button class="btn-next" onclick="submitStep4()">บันทึกและถัดไป</button>
   </div>
 
   <div id="step5" class="step">
+    <h3>ขั้นตอนที่ 5: เกณฑ์ตัดเกรด (ไม้บรรทัด)</h3>
+    <p style="color: #666;">สำหรับวิชา: <strong id="showSubjectIdForGrade">-</strong></p>
+    
+    <div class="input-group">
+      <div style="flex: 1;"><input type="text" id="gradeName" placeholder="เกรด (เช่น A)" style="margin-bottom: 0;"></div>
+      <div style="flex: 1;"><input type="number" id="minScore" placeholder="คะแนนขั้นต่ำ" style="margin-bottom: 0;"></div>
+      <div style="flex: 1;"><input type="number" id="maxScore" placeholder="คะแนนสูงสุด" style="margin-bottom: 0;"></div>
+      <button class="btn-add" style="margin-top: 0; padding: 8px 15px;" onclick="addGrade()">เพิ่ม</button>
+    </div>
+
+    <h4 style="margin-bottom: 5px;">เกณฑ์ที่เตรียมบันทึก</h4>
+    <div class="preview-box">
+      <ul id="gradeList"></ul>
+    </div>
+
+    <div id="loading5" class="loading">กำลังบันทึกข้อมูล...</div>
+    <button class="btn-back" onclick="changeStep(4)">ย้อนกลับ</button>
+    <button class="btn-next" onclick="submitStep5()">บันทึกเกณฑ์และเสร็จสิ้น</button>
+  </div>
+
+  <div id="step6" class="step">
     <h3>สำเร็จ! 🎉</h3>
-    <p>ข้อมูลวิชา กลุ่ม รายชื่อนิสิต และหัวข้อการประเมิน ถูกส่งเข้า Google Sheets เรียบร้อยแล้วค่ะ</p>
+    <p>ข้อมูลวิชา กลุ่ม รายชื่อนิสิต หัวข้อประเมิน และเกณฑ์ตัดเกรด ถูกส่งเข้า Google Sheets เรียบร้อยพร้อมใช้งานแล้วค่ะ</p>
     <button class="btn-back" onclick="location.reload()">เริ่มตั้งค่าวิชาใหม่</button>
   </div>
 
@@ -115,14 +121,14 @@
   const API_URL = "https://script.google.com/macros/s/AKfycbxYKzFu-QPynDHiHks3XGPO2Z4uLV4GEv3cR-3okkh3W_RLVH0b-2-ZKsKAI9fd12ll/exec";
 
   let pendingStudents = []; 
-  let pendingTopics = []; // กล่องเก็บหัวข้อการประเมิน
+  let pendingTopics = []; 
+  let pendingGrades = []; // กล่องเก็บเกณฑ์ตัดเกรด
 
   function changeStep(n) {
     document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
     document.getElementById('step' + n).classList.add('active');
   }
 
-  // --- ส่วนส่งข้อมูลกลาง ---
   function sendDataToGoogle(actionName, payloadData, loadingId, onSuccess) {
     document.getElementById(loadingId).style.display = 'block';
     fetch(API_URL, {
@@ -142,13 +148,14 @@
     });
   }
 
-  // --- ฟังก์ชันของสเตปต่างๆ ---
+  // --- ฟังก์ชัน สเตป 1-4 (เหมือนเดิม) ---
   function submitStep1() {
     var data = { subjectId: document.getElementById('subjectId').value, subjectName: document.getElementById('subjectName').value };
     if(!data.subjectId || !data.subjectName) return alert("กรอกให้ครบค่ะ");
     sendDataToGoogle("saveSubject", data, 'loading1', function() {
       document.getElementById('showSubjectId').innerText = data.subjectId; 
-      document.getElementById('showSubjectIdForTopic').innerText = data.subjectId; // ส่งรหัสวิชาไปแสดงที่สเตป 4 ด้วย
+      document.getElementById('showSubjectIdForTopic').innerText = data.subjectId; 
+      document.getElementById('showSubjectIdForGrade').innerText = data.subjectId; // ส่งรหัสไปแสดงที่สเตป 5
       changeStep(2);
     });
   }
@@ -156,47 +163,33 @@
   function submitStep2() {
     var data = { subjectId: document.getElementById('subjectId').value, groupId: document.getElementById('groupId').value, groupName: document.getElementById('groupName').value };
     if(!data.groupId || !data.groupName) return alert("กรอกให้ครบค่ะ");
-    sendDataToGoogle("saveGroup", data, 'loading2', function() {
-      document.getElementById('showGroupId').innerText = data.groupId; changeStep(3);
-    });
+    sendDataToGoogle("saveGroup", data, 'loading2', function() { document.getElementById('showGroupId').innerText = data.groupId; changeStep(3); });
   }
 
-  // --- ฟังก์ชันของสเตป 3 (รายชื่อ) ---
   function renderPreview() {
-    const list = document.getElementById('previewList');
-    list.innerHTML = '';
-    pendingStudents.forEach((std, index) => {
-      list.innerHTML += `<li>${std[0]} - ${std[1]} <button class="btn-delete" onclick="removeStudent(${index})">ลบ</button></li>`;
-    });
+    const list = document.getElementById('previewList'); list.innerHTML = '';
+    pendingStudents.forEach((std, index) => { list.innerHTML += `<li>${std[0]} - ${std[1]} <button class="btn-delete" onclick="removeStudent(${index})">ลบ</button></li>`; });
     document.getElementById('studentCount').innerText = pendingStudents.length;
   }
   function addManualStudent() {
-    const id = document.getElementById('manualId').value.trim();
-    const name = document.getElementById('manualName').value.trim();
+    const id = document.getElementById('manualId').value.trim(); const name = document.getElementById('manualName').value.trim();
     if(!id || !name) return alert("กรุณากรอกรหัสและชื่อให้ครบค่ะ");
-    pendingStudents.push([id, name]);
-    document.getElementById('manualId').value = ''; document.getElementById('manualName').value = '';
-    renderPreview();
+    pendingStudents.push([id, name]); document.getElementById('manualId').value = ''; document.getElementById('manualName').value = ''; renderPreview();
   }
   function removeStudent(index) { pendingStudents.splice(index, 1); renderPreview(); }
   function handleFileUpload(event) {
-    const file = event.target.files[0];
-    if(!file) return;
+    const file = event.target.files[0]; if(!file) return;
     document.getElementById('fileNameDisplay').innerText = "กำลังอ่านไฟล์: " + file.name;
     const reader = new FileReader();
     reader.onload = function(e) {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, {type: 'array'});
-      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      const json = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+      const data = new Uint8Array(e.target.result); const workbook = XLSX.read(data, {type: 'array'});
+      const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
       for(let i=0; i<json.length; i++) {
-        let row = json[i];
-        if(!row || row.length < 2) continue;
+        let row = json[i]; if(!row || row.length < 2) continue;
         let id = String(row[0]).trim(); let name = String(row[1]).trim();
         if(id && name && id !== "รหัสนิสิต" && id !== "รหัส") pendingStudents.push([id, name]);
       }
-      document.getElementById('fileNameDisplay').innerText = "ดึงข้อมูลจากไฟล์เรียบร้อยแล้ว!";
-      renderPreview();
+      document.getElementById('fileNameDisplay').innerText = "ดึงข้อมูลจากไฟล์เรียบร้อยแล้ว!"; renderPreview();
     };
     reader.readAsArrayBuffer(file);
   }
@@ -206,43 +199,65 @@
     sendDataToGoogle("saveStudents", data, 'loading3', function() { changeStep(4); });
   }
 
-  // --- 🌟 ฟังก์ชันของสเตป 4 (หัวข้อการประเมิน) ---
   function renderTopics() {
-    const list = document.getElementById('topicList');
-    list.innerHTML = '';
-    let total = 0;
+    const list = document.getElementById('topicList'); list.innerHTML = ''; let total = 0;
     pendingTopics.forEach((topic, index) => {
-      total += topic.score;
-      list.innerHTML += `<li>${topic.name} (${topic.score} คะแนน) <button class="btn-delete" onclick="removeTopic(${index})">ลบ</button></li>`;
+      total += topic.score; list.innerHTML += `<li>${topic.name} (${topic.score} คะแนน) <button class="btn-delete" onclick="removeTopic(${index})">ลบ</button></li>`;
     });
     document.getElementById('totalScore').innerText = total;
   }
-
   function addTopic() {
-    const name = document.getElementById('topicName').value.trim();
-    const score = parseFloat(document.getElementById('topicScore').value);
-    
-    if(!name || isNaN(score) || score <= 0) return alert("กรุณากรอกชื่อหัวข้อและคะแนน (ต้องเป็นตัวเลข) ให้ถูกต้องค่ะ");
-    
-    pendingTopics.push({name: name, score: score});
-    document.getElementById('topicName').value = '';
-    document.getElementById('topicScore').value = '';
-    renderTopics();
+    const name = document.getElementById('topicName').value.trim(); const score = parseFloat(document.getElementById('topicScore').value);
+    if(!name || isNaN(score) || score <= 0) return alert("กรุณากรอกชื่อหัวข้อและคะแนนให้ถูกต้องค่ะ");
+    pendingTopics.push({name: name, score: score}); document.getElementById('topicName').value = ''; document.getElementById('topicScore').value = ''; renderTopics();
   }
-
-  function removeTopic(index) {
-    pendingTopics.splice(index, 1);
-    renderTopics();
-  }
-
+  function removeTopic(index) { pendingTopics.splice(index, 1); renderTopics(); }
+  
   function submitStep4() {
     if(pendingTopics.length === 0) return alert("กรุณาเพิ่มหัวข้อการประเมินอย่างน้อย 1 หัวข้อค่ะ");
+    var data = { subjectId: document.getElementById('subjectId').value, topics: pendingTopics };
+    // เปลี่ยนจากไปสเตป 5 เป็นเซฟแล้วไปสเตป 5
+    sendDataToGoogle("saveTopics", data, 'loading4', function() { changeStep(5); });
+  }
+
+  // --- 🌟 ฟังก์ชันของสเตป 5 (เกณฑ์ตัดเกรด) ---
+  function renderGrades() {
+    const list = document.getElementById('gradeList');
+    list.innerHTML = '';
+    // เรียงลำดับจากคะแนนสูงสุดไปต่ำสุดให้ดูง่ายๆ
+    pendingGrades.sort((a, b) => b.minScore - a.minScore).forEach((g, index) => {
+      list.innerHTML += `<li>เกรด ${g.gradeName} (${g.minScore} - ${g.maxScore} คะแนน) <button class="btn-delete" onclick="removeGrade(${index})">ลบ</button></li>`;
+    });
+  }
+
+  function addGrade() {
+    const gradeName = document.getElementById('gradeName').value.trim();
+    const minScore = parseFloat(document.getElementById('minScore').value);
+    const maxScore = parseFloat(document.getElementById('maxScore').value);
+    
+    if(!gradeName || isNaN(minScore) || isNaN(maxScore)) return alert("กรุณากรอกข้อมูลให้ครบและเป็นตัวเลขค่ะ");
+    if(minScore > maxScore) return alert("คะแนนขั้นต่ำต้องไม่มากกว่าคะแนนสูงสุดค่ะ");
+    
+    pendingGrades.push({gradeName: gradeName, minScore: minScore, maxScore: maxScore});
+    document.getElementById('gradeName').value = '';
+    document.getElementById('minScore').value = '';
+    document.getElementById('maxScore').value = '';
+    renderGrades();
+  }
+
+  function removeGrade(index) {
+    pendingGrades.splice(index, 1);
+    renderGrades();
+  }
+
+  function submitStep5() {
+    if(pendingGrades.length === 0) return alert("กรุณาเพิ่มเกณฑ์ตัดเกรดอย่างน้อย 1 รายการค่ะ");
     
     var data = { 
       subjectId: document.getElementById('subjectId').value, 
-      topics: pendingTopics 
+      grades: pendingGrades 
     };
-    sendDataToGoogle("saveTopics", data, 'loading4', function() { changeStep(5); });
+    sendDataToGoogle("saveGrades", data, 'loading5', function() { changeStep(6); });
   }
 </script>
 </body>
