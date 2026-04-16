@@ -3,60 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบกรอกคะแนนเพื่อทำเกรด</title>
+    <title>ระบบกรอกคะแนน ทฤษฎีทางศัลยศาสตร์ 1</title>
     <style>
-        body { font-family: 'Sarabun', sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        body { font-family: 'Sarabun', sans-serif; background-color: #e9ecef; margin: 0; padding: 20px; }
         .container { max-width: 600px; background: #fff; padding: 30px; margin: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: #333; }
-        label { font-weight: bold; display: block; margin-top: 15px; }
-        input[type="text"], input[type="number"] { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { background-color: #4CAF50; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 25px; font-size: 16px; }
-        button:hover { background-color: #45a049; }
-        #message { margin-top: 15px; text-align: center; font-weight: bold; color: green; }
+        h2 { text-align: center; color: #333; margin-bottom: 5px; }
+        p.subtitle { text-align: center; color: #666; margin-top: 0; margin-bottom: 20px; font-size: 14px; }
+        label { font-weight: bold; display: block; margin-top: 15px; color: #444; }
+        input[type="text"], input[type="number"] { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 16px; }
+        input[readonly] { background-color: #f8f9fa; color: #333; font-weight: bold; }
+        button { background-color: #0d6efd; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 25px; font-size: 18px; font-weight: bold;}
+        button:hover { background-color: #0b5ed7; }
+        #message { margin-top: 15px; text-align: center; font-weight: bold; }
+        .score-group { display: flex; gap: 10px; }
+        .score-group > div { flex: 1; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>แบบฟอร์มกรอกคะแนน</h2>
+    <h2>ฟอร์มกรอกคะแนน</h2>
+    <p class="subtitle">รายวิชา ทฤษฎีทางศัลยศาสตร์ 1 (ตัดเกรดอัตโนมัติ)</p>
     <form id="gradeForm">
-        <label for="studentId">รหัสนิสิต</label>
-        <input type="text" id="studentId" name="studentId" required>
+        <div class="score-group">
+            <div>
+                <label for="studentId">รหัสนิสิต</label>
+                <input type="text" id="studentId" name="studentId" required>
+            </div>
+            <div>
+                <label for="name">ชื่อ - สกุล</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+        </div>
 
-        <label for="name">ชื่อ - สกุล</label>
-        <input type="text" id="name" name="name" required>
+        <label for="meq">คะแนน MEQ (เต็ม 15%)</label>
+        <input type="number" step="0.01" id="meq" name="meq" placeholder="เช่น 7.88" oninput="calculateGrade()">
 
-        <label for="meq">คะแนน MEQ</label>
-        <input type="number" step="0.01" id="meq" name="meq" oninput="calculateTotal()">
+        <label for="mcq">คะแนน MCQ (เต็ม 60%)</label>
+        <input type="number" step="0.01" id="mcq" name="mcq" placeholder="เช่น 27.60" oninput="calculateGrade()">
 
-        <label for="mcq">คะแนน MCQ</label>
-        <input type="number" step="0.01" id="mcq" name="mcq" oninput="calculateTotal()">
+        <label for="activeLearning">คะแนน Active Learning (เต็ม 15%)</label>
+        <input type="number" step="0.01" id="activeLearning" name="activeLearning" placeholder="เช่น 15.00" oninput="calculateGrade()">
 
-        <label for="activeLearning">คะแนน Active Learning</label>
-        <input type="number" step="0.01" id="activeLearning" name="activeLearning" oninput="calculateTotal()">
+        <label for="affective">จิตพิสัยเข้าห้องเรียน (เต็ม 10%)</label>
+        <input type="number" step="0.01" id="affective" name="affective" placeholder="เช่น 9.09" oninput="calculateGrade()">
 
-        <label for="affective">จิตพิสัยเข้าห้องเรียน</label>
-        <input type="number" step="0.01" id="affective" name="affective" oninput="calculateTotal()">
+        <div class="score-group">
+            <div>
+                <label for="total">รวมคะแนน (100%)</label>
+                <input type="text" id="total" name="total" readonly placeholder="0.00">
+            </div>
+            <div>
+                <label for="grade">เกรดที่ได้</label>
+                <input type="text" id="grade" name="grade" readonly placeholder="-">
+            </div>
+        </div>
 
-        <label for="total">รวมคะแนน (คำนวณอัตโนมัติ)</label>
-        <input type="number" step="0.01" id="total" name="total" readonly>
-
-        <label for="grade">เกรด</label>
-        <input type="text" id="grade" name="grade">
-
-        <button type="submit">บันทึกข้อมูล</button>
+        <button type="submit">บันทึกข้อมูลลง Google Sheet</button>
     </form>
     <div id="message"></div>
 </div>
 
 <script>
-    // ฟังก์ชันคำนวณคะแนนรวมอัตโนมัติ
-    function calculateTotal() {
+    // ฟังก์ชันคำนวณคะแนนรวมและตัดเกรดอัตโนมัติตามเกณฑ์ของรายวิชา
+    function calculateGrade() {
         let meq = parseFloat(document.getElementById('meq').value) || 0;
         let mcq = parseFloat(document.getElementById('mcq').value) || 0;
         let al = parseFloat(document.getElementById('activeLearning').value) || 0;
         let aff = parseFloat(document.getElementById('affective').value) || 0;
-        document.getElementById('total').value = (meq + mcq + al + aff).toFixed(2);
+        
+        let totalScore = meq + mcq + al + aff;
+        document.getElementById('total').value = totalScore.toFixed(2);
+
+        let grade = "";
+        if (totalScore >= 76.89) { grade = "A"; }
+        else if (totalScore >= 73.39) { grade = "B+"; }
+        else if (totalScore >= 69.89) { grade = "B"; }
+        else if (totalScore >= 66.39) { grade = "C+"; }
+        else if (totalScore >= 62.89) { grade = "C"; }
+        else if (totalScore >= 59.57) { grade = "D+"; }
+        else if (totalScore >= 55.89) { grade = "D"; }
+        else if (totalScore > 0) { grade = "F"; } // ถ้ามีคะแนนแต่ไม่ถึงเกณฑ์
+        
+        document.getElementById('grade').value = grade;
     }
 
     document.getElementById("gradeForm").addEventListener("submit", function(e) {
@@ -67,7 +96,7 @@
         messageBox.style.color = "blue";
         messageBox.innerText = "กำลังบันทึกข้อมูล...";
 
-        // นำ URL ของ Web App จาก Google Apps Script มาใส่ที่นี่
+        // *** อย่าลืมนำ URL ของ Web App จาก Apps Script มาใส่ตรงนี้ ***
         let webAppUrl = "https://script.google.com/macros/s/AKfycbwEZjD_F3uMPxvJm4H_heznQYrpfzg90rDeozYwGoPY04s_mxV34CMDeAuHulTXkXU/exec"; 
 
         fetch(webAppUrl, {
@@ -78,7 +107,18 @@
         .then(data => {
             messageBox.style.color = "green";
             messageBox.innerText = "บันทึกข้อมูลสำเร็จแล้ว!";
-            document.getElementById("gradeForm").reset(); // ล้างฟอร์ม
+            
+            // ล้างฟอร์มเฉพาะช่องคะแนน เพื่อให้กรอกคนต่อไปได้ง่ายขึ้น
+            document.getElementById('meq').value = '';
+            document.getElementById('mcq').value = '';
+            document.getElementById('activeLearning').value = '';
+            document.getElementById('affective').value = '';
+            document.getElementById('total').value = '';
+            document.getElementById('grade').value = '';
+            document.getElementById('studentId').focus();
+            
+            // ซ่อนข้อความสำเร็จหลังผ่านไป 3 วินาที
+            setTimeout(() => { messageBox.innerText = ""; }, 3000);
         })
         .catch(error => {
             messageBox.style.color = "red";
