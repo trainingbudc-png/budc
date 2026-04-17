@@ -10,45 +10,119 @@
       display: flex; 
       justify-content: center; 
       align-items: center; 
-      height: 100vh; 
+      min-height: 100vh; 
       margin: 0; 
+      padding: 20px;
     }
     .container { 
       background: #ffffff; 
       padding: 40px; 
       border-radius: 12px; 
       box-shadow: 0 8px 20px rgba(0,0,0,0.1); 
-      text-align: center; 
-      max-width: 400px; 
-      width: 90%; 
-    }
-    h2 { color: #2c3e50; margin-bottom: 5px; }
-    p { color: #7f8c8d; margin-bottom: 25px;}
-    .btn { 
-      background-color: #3498db; 
-      color: white; 
-      border: none; 
-      padding: 12px 20px; 
-      font-size: 16px; 
-      border-radius: 6px; 
-      cursor: pointer; 
       width: 100%; 
-      font-family: 'Sarabun', sans-serif;
-      transition: 0.3s;
+      max-width: 500px; 
+    }
+    h2, h3 { color: #2c3e50; text-align: center; margin-bottom: 20px;}
+    
+    /* ระบบจัดการหน้า (ซ่อน/แสดง) */
+    .page { display: none; animation: fadeIn 0.5s; }
+    .page.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .btn { 
+      background-color: #3498db; color: white; border: none; padding: 12px 20px; 
+      font-size: 16px; border-radius: 6px; cursor: pointer; width: 100%; 
+      font-family: 'Sarabun', sans-serif; transition: 0.3s; margin-top: 15px;
     }
     .btn:hover { background-color: #2980b9; }
+    .btn-secondary { background-color: #95a5a6; }
+    .btn-secondary:hover { background-color: #7f8c8d; }
+    
+    /* จัดการฟอร์ม */
+    .form-group { margin-bottom: 15px; }
+    label { display: block; font-weight: 600; margin-bottom: 5px; color: #34495e; font-size: 14px;}
+    input[type="text"], input[type="number"], input[type="date"] { 
+      width: 100%; padding: 10px; box-sizing: border-box; 
+      border: 1px solid #bdc3c7; border-radius: 6px; font-family: 'Sarabun', sans-serif; 
+    }
+    .row { display: flex; gap: 10px; }
+    .col { flex: 1; }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <img src="https://cdn-icons-png.flaticon.com/512/3135/3135810.png" width="80" alt="icon" style="margin-bottom: 15px;">
     
-    <h2>ระบบกรอกคะแนนเพื่อทำเกรด</h2>
-    <p>รายวิชา ทฤษฎีทางศัลยศาสตร์ 1</p>
-    
-    <button class="btn" onclick="alert('เยี่ยมมาก! คุณทำหน้าแรกสำเร็จแล้ว เดี๋ยวเราไปทำหน้ากรอกคะแนนกันต่อครับ')">เข้าสู่ระบบกรอกคะแนน</button>
+    <div id="page1" class="page active" style="text-align: center;">
+      <img src="https://cdn-icons-png.flaticon.com/512/3135/3135810.png" width="80" alt="icon" style="margin-bottom: 15px;">
+      <h2>ระบบกรอกคะแนนเพื่อทำเกรด</h2>
+      <p style="color: #7f8c8d; margin-bottom: 25px;">ยินดีต้อนรับเข้าสู่ระบบจัดการคะแนนนิสิต</p>
+      
+      <button class="btn" onclick="goToPage('page2')">เริ่มต้นกรอกข้อมูลรายวิชา</button>
+    </div>
+
+
+    <div id="page2" class="page">
+      <h3>ข้อมูลรายวิชา</h3>
+      <form id="courseForm">
+        
+        <div class="row">
+          <div class="col form-group">
+            <label>รหัสวิชา:</label>
+            <input type="text" id="subjectCode" placeholder="เช่น 499414">
+          </div>
+          <div class="col form-group">
+            <label>ชื่อรายวิชา:</label>
+            <input type="text" id="subjectName" placeholder="เช่น ทฤษฎีทางศัลยศาสตร์ 1">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col form-group">
+            <label>กลุ่มงาน:</label>
+            <input type="text" id="department" placeholder="เช่น ศัลยกรรม">
+          </div>
+          <div class="col form-group">
+            <label>ปีที่เรียน / กลุ่ม:</label>
+            <input type="text" id="yearGroup" placeholder="เช่น ปี 4 กลุ่ม 2 (4)">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>ปีการศึกษา:</label>
+          <input type="text" id="academicYear" placeholder="เช่น 2568">
+        </div>
+
+        <div class="row">
+          <div class="col form-group">
+            <label>วันที่เริ่มต้น:</label>
+            <input type="date" id="startDate">
+          </div>
+          <div class="col form-group">
+            <label>วันที่สิ้นสุด:</label>
+            <input type="date" id="endDate">
+          </div>
+        </div>
+
+        <button type="button" class="btn" onclick="alert('เดี๋ยวเราไปทำหน้า 3 ฟอร์มกรอกคะแนน กันต่อนะครับ!')">ถัดไป (ฟอร์มกรอกคะแนน)</button>
+        <button type="button" class="btn btn-secondary" onclick="goToPage('page1')">ย้อนกลับ</button>
+      </form>
+    </div>
+
   </div>
+
+  <script>
+    // ฟังก์ชันสำหรับสลับหน้า
+    function goToPage(pageId) {
+      // ซ่อนทุกหน้า
+      var pages = document.querySelectorAll('.page');
+      pages.forEach(function(page) {
+        page.classList.remove('active');
+      });
+      // แสดงเฉพาะหน้าที่ต้องการ
+      document.getElementById(pageId).classList.add('active');
+    }
+  </script>
 
 </body>
 </html>
