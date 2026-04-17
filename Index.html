@@ -10,7 +10,9 @@
         h2 { text-align: center; color: #1a73e8; margin-bottom: 20px; }
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; color: #333; font-weight: bold; }
-        select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 14px; }
+        input[type="text"], input[type="number"], select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 14px; }
+        button { width: 100%; padding: 12px; background-color: #1a73e8; border: none; color: white; font-size: 16px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        button:hover { background-color: #1557b0; }
         .loading { text-align: center; color: #666; font-size: 14px; margin-bottom: 10px; }
     </style>
 </head>
@@ -28,35 +30,96 @@
                 <option value="">-- กรุณาเลือกรายวิชา --</option>
                 </select>
         </div>
-        
-        <p style="text-align:center; color:#888; font-size:12px;">(ส่วนของรายวิชาแสดงผลเรียบร้อยแล้ว)</p>
+        <div class="form-group">
+            <label for="group">กลุ่ม (Section):</label>
+            <input type="text" id="group" name="group" required>
+        </div>
+        <div class="form-group">
+            <label for="studentId">รหัสนิสิต:</label>
+            <input type="text" id="studentId" name="studentId" required>
+        </div>
+        <div class="form-group">
+            <label for="studentName">ชื่อ-นามสกุล นิสิต:</label>
+            <input type="text" id="studentName" name="studentName" required>
+        </div>
+        <div class="form-group">
+            <label for="score">คะแนน (เต็ม 100):</label>
+            <input type="number" id="score" name="score" min="0" max="100" required>
+        </div>
+        <button type="submit" id="submitBtn">บันทึกข้อมูลและทำเกรด</button>
+        <div id="message" style="text-align: center; margin-top: 10px; font-weight: bold;"></div>
     </form>
 </div>
 
 <script>
-    // เมื่อโหลดหน้าเว็บเสร็จ ให้เรียกฟังก์ชัน getSubjectList จากฝั่งเซิร์ฟเวอร์ (Apps Script)
+    // ======================================================================
+    // 🔴 วาง Web App URL ที่ได้จากขั้นตอนที่ 2 ไว้ในเครื่องหมายคำพูดด้านล่างนี้ 🔴
+    // ======================================================================
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw3ETUYygS1QEoQC34lcjTG3kN8dfjTjrElLZq6hetHy9UfxyMi15YeBD2J4xeuhqmR/exec'; 
+
     window.onload = function() {
-        google.script.run
-            .withSuccessHandler(populateDropdown) // ถ้าดึงสำเร็จให้เรียกฟังก์ชัน populateDropdown
-            .getSubjectList();
+        if(WEB_APP_URL === 'ใส่_WEB_APP_URL_ของคุณที่นี่') {
+            document.getElementById('loadingMessage').innerText = 'กรุณาใส่ Web App URL ในโค้ด HTML ก่อน';
+            document.getElementById('loadingMessage').style.color = 'red';
+            return;
+        }
+
+        // สั่งให้ HTML ไปดึงข้อมูลรายวิชาจาก Google Sheet
+        fetch(WEB_APP_URL)
+            .then(response => response.json())
+            .then(result => {
+                if(result.status === 'success') {
+                    populateDropdown(result.data);
+                } else {
+                    document.getElementById('loadingMessage').innerText = result.message;
+                }
+            })
+            .catch(error => {
+                document.getElementById('loadingMessage').innerText = 'เกิดข้อผิดพลาดในการโหลดข้อมูล';
+                console.error(error);
+            });
     };
 
-    // ฟังก์ชันนำรายวิชามาใส่ใน Dropdown
     function populateDropdown(subjects) {
         var select = document.getElementById('subject');
-        
-        // วนลูปนำชื่อวิชามาสร้างเป็น option
-        for (var i = 0; i < subjects.length; i++) {
+        subjects.forEach(function(sub) {
             var option = document.createElement('option');
-            option.value = subjects[i];
-            option.text = subjects[i];
+            option.value = sub;
+            option.text = sub;
             select.appendChild(option);
-        }
+        });
         
-        // ซ่อนข้อความโหลด และแสดงฟอร์ม
+        // เมื่อโหลดเสร็จ ให้ซ่อนข้อความโหลด แล้วโชว์ฟอร์ม
         document.getElementById('loadingMessage').style.display = 'none';
         document.getElementById('scoreForm').style.display = 'block';
     }
+
+    // ฟังก์ชันตอนกดปุ่มบันทึก
+    document.getElementById('scoreForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const submitBtn = document.getElementById('submitBtn');
+        const messageDiv = document.getElementById('message');
+        submitBtn.innerText = 'กำลังบันทึก...';
+        submitBtn.disabled = true;
+
+        const formData = new FormData(this);
+
+        fetch(WEB_APP_URL, { method: 'POST', body: formData })
+        .then(response => response.text())
+        .then(data => {
+            messageDiv.innerText = 'บันทึกข้อมูลเรียบร้อยแล้ว!';
+            messageDiv.style.color = 'green';
+            document.getElementById('scoreForm').reset();
+            submitBtn.innerText = 'บันทึกข้อมูลและทำเกรด';
+            submitBtn.disabled = false;
+        })
+        .catch(error => {
+            messageDiv.innerText = 'เกิดข้อผิดพลาด กรุณาลองใหม่';
+            messageDiv.style.color = 'red';
+            submitBtn.innerText = 'บันทึกข้อมูลและทำเกรด';
+            submitBtn.disabled = false;
+        });
+    });
 </script>
 
 </body>
