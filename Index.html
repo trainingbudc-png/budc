@@ -5,136 +5,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบกรอกคะแนนเพื่อทำเกรด</title>
     <style>
-        body { 
-            font-family: 'Sarabun', Tahoma, sans-serif; 
-            background-color: #f0f2f5; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            margin: 0; 
-        }
-        .container { 
-            background: #ffffff; 
-            padding: 30px; 
-            border-radius: 10px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
-            width: 100%; 
-            max-width: 400px; 
-        }
-        h2 { 
-            text-align: center; 
-            color: #1a73e8; 
-            margin-bottom: 20px;
-        }
-        .form-group { 
-            margin-bottom: 15px; 
-        }
-        label { 
-            display: block; 
-            margin-bottom: 5px; 
-            color: #333; 
-            font-weight: bold; 
-        }
-        input[type="text"], input[type="number"] { 
-            width: 100%; 
-            padding: 10px; 
-            border: 1px solid #ccc; 
-            border-radius: 5px; 
-            box-sizing: border-box; 
-            font-size: 14px;
-        }
-        button { 
-            width: 100%; 
-            padding: 12px; 
-            background-color: #1a73e8; 
-            border: none; 
-            color: white; 
-            font-size: 16px; 
-            border-radius: 5px; 
-            cursor: pointer; 
-            font-weight: bold;
-            transition: background 0.3s;
-        }
-        button:hover { 
-            background-color: #1557b0; 
-        }
-        button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-        .message { 
-            margin-top: 15px; 
-            text-align: center; 
-            font-weight: bold; 
-        }
+        body { font-family: 'Sarabun', Tahoma, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { background: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h2 { text-align: center; color: #1a73e8; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #333; font-weight: bold; }
+        select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 14px; }
+        .loading { text-align: center; color: #666; font-size: 14px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h2>ระบบกรอกคะแนน</h2>
-    <form id="scoreForm">
+    
+    <div id="loadingMessage" class="loading">กำลังโหลดรายวิชา...</div>
+
+    <form id="scoreForm" style="display:none;">
         <div class="form-group">
-            <label for="subject">รายวิชา:</label>
-            <input type="text" id="subject" name="subject" placeholder="เช่น คณิตศาสตร์" required>
+            <label for="subject">เลือกรายวิชา:</label>
+            <select id="subject" name="subject" required>
+                <option value="">-- กรุณาเลือกรายวิชา --</option>
+                </select>
         </div>
-        <div class="form-group">
-            <label for="group">กลุ่ม (Section):</label>
-            <input type="text" id="group" name="group" placeholder="เช่น 01" required>
-        </div>
-        <div class="form-group">
-            <label for="studentId">รหัสนิสิต:</label>
-            <input type="text" id="studentId" name="studentId" placeholder="กรอกรหัสนิสิต" required>
-        </div>
-        <div class="form-group">
-            <label for="studentName">ชื่อ-นามสกุล นิสิต:</label>
-            <input type="text" id="studentName" name="studentName" placeholder="กรอกชื่อ-นามสกุล" required>
-        </div>
-        <div class="form-group">
-            <label for="score">คะแนนรวม (เต็ม 100):</label>
-            <input type="number" id="score" name="score" min="0" max="100" placeholder="กรอกคะแนน" required>
-        </div>
-        <button type="submit" id="submitBtn">บันทึกข้อมูลและคำนวณเกรด</button>
-        <div class="message" id="message"></div>
+        
+        <p style="text-align:center; color:#888; font-size:12px;">(ส่วนของรายวิชาแสดงผลเรียบร้อยแล้ว)</p>
     </form>
 </div>
 
 <script>
-    // ** นำ Web App URL ที่คุณได้จาก Apps Script มาใส่ในเครื่องหมายคำพูดด้านล่างนี้ **
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw3ETUYygS1QEoQC34lcjTG3kN8dfjTjrElLZq6hetHy9UfxyMi15YeBD2J4xeuhqmR/exec'; 
+    // เมื่อโหลดหน้าเว็บเสร็จ ให้เรียกฟังก์ชัน getSubjectList จากฝั่งเซิร์ฟเวอร์ (Apps Script)
+    window.onload = function() {
+        google.script.run
+            .withSuccessHandler(populateDropdown) // ถ้าดึงสำเร็จให้เรียกฟังก์ชัน populateDropdown
+            .getSubjectList();
+    };
 
-    document.getElementById('scoreForm').addEventListener('submit', function(e) {
-        e.preventDefault();
+    // ฟังก์ชันนำรายวิชามาใส่ใน Dropdown
+    function populateDropdown(subjects) {
+        var select = document.getElementById('subject');
         
-        const submitBtn = document.getElementById('submitBtn');
-        const messageDiv = document.getElementById('message');
+        // วนลูปนำชื่อวิชามาสร้างเป็น option
+        for (var i = 0; i < subjects.length; i++) {
+            var option = document.createElement('option');
+            option.value = subjects[i];
+            option.text = subjects[i];
+            select.appendChild(option);
+        }
         
-        submitBtn.innerText = 'กำลังบันทึกข้อมูล...';
-        submitBtn.disabled = true;
-        messageDiv.innerText = '';
-
-        const formData = new FormData(this);
-
-        fetch(WEB_APP_URL, {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.text())
-        .then(data => {
-            messageDiv.innerText = 'บันทึกข้อมูลลง Google Sheet เรียบร้อยแล้ว!';
-            messageDiv.style.color = '#28a745'; // สีเขียว
-            document.getElementById('scoreForm').reset();
-            submitBtn.innerText = 'บันทึกข้อมูลและคำนวณเกรด';
-            submitBtn.disabled = false;
-        })
-        .catch(error => {
-            messageDiv.innerText = 'เกิดข้อผิดพลาดในการบันทึกข้อมูล กรุณาลองใหม่';
-            messageDiv.style.color = '#dc3545'; // สีแดง
-            submitBtn.innerText = 'บันทึกข้อมูลและคำนวณเกรด';
-            submitBtn.disabled = false;
-        });
-    });
+        // ซ่อนข้อความโหลด และแสดงฟอร์ม
+        document.getElementById('loadingMessage').style.display = 'none';
+        document.getElementById('scoreForm').style.display = 'block';
+    }
 </script>
 
 </body>
