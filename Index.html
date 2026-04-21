@@ -1,128 +1,102 @@
 <!DOCTYPE html>
-<html lang="th">
+<html>
 <head>
   <base target="_top">
-  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
-    body { 
-      font-family: 'Sarabun', sans-serif; 
-      background-color: #f0f4f8; 
-      display: flex; 
-      justify-content: center; 
-      align-items: center; 
-      min-height: 100vh; 
-      margin: 0; 
-      padding: 20px;
-    }
-    .container { 
-      background: #ffffff; 
-      padding: 40px; 
-      border-radius: 12px; 
-      box-shadow: 0 8px 20px rgba(0,0,0,0.1); 
-      width: 100%; 
-      max-width: 500px; 
-    }
-    h2, h3 { color: #2c3e50; text-align: center; margin-bottom: 20px;}
-    
-    /* ระบบจัดการหน้า (ซ่อน/แสดง) */
-    .page { display: none; animation: fadeIn 0.5s; }
-    .page.active { display: block; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-    .btn { 
-      background-color: #3498db; color: white; border: none; padding: 12px 20px; 
-      font-size: 16px; border-radius: 6px; cursor: pointer; width: 100%; 
-      font-family: 'Sarabun', sans-serif; transition: 0.3s; margin-top: 15px;
-    }
-    .btn:hover { background-color: #2980b9; }
-    .btn-secondary { background-color: #95a5a6; }
-    .btn-secondary:hover { background-color: #7f8c8d; }
-    
-    /* จัดการฟอร์ม */
-    .form-group { margin-bottom: 15px; }
-    label { display: block; font-weight: 600; margin-bottom: 5px; color: #34495e; font-size: 14px;}
-    input[type="text"], input[type="number"], input[type="date"] { 
-      width: 100%; padding: 10px; box-sizing: border-box; 
-      border: 1px solid #bdc3c7; border-radius: 6px; font-family: 'Sarabun', sans-serif; 
-    }
-    .row { display: flex; gap: 10px; }
-    .col { flex: 1; }
+    body { font-family: 'Sarabun', sans-serif; background-color: #f0f2f5; padding: 20px; }
+    .container { max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    .step { display: none; }
+    .step.active { display: block; }
+    h2 { color: #1a73e8; text-align: center; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; }
+    label { font-weight: bold; display: block; margin-top: 15px; }
+    input[type="text"], input[type="number"] { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+    .btn-group { display: flex; justify-content: space-between; margin-top: 25px; }
+    button { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; }
+    .btn-next { background-color: #1a73e8; color: white; }
+    .btn-prev { background-color: #e0e0e0; color: #333; }
+    .btn-submit { background-color: #34a853; color: white; width: 100%; margin-top: 20px;}
+    #message { text-align: center; margin-top: 15px; font-weight: bold; color: green; }
   </style>
 </head>
 <body>
 
-  <div class="container">
+<div class="container">
+  <h2>ระบบบันทึกคะแนน (เฟส 1)</h2>
+  <form id="scoreForm" onsubmit="event.preventDefault(); submitData();">
     
-    <div id="page1" class="page active" style="text-align: center;">
-      <img src="https://cdn-icons-png.flaticon.com/512/3135/3135810.png" width="80" alt="icon" style="margin-bottom: 15px;">
-      <h2>ระบบกรอกคะแนนเพื่อทำเกรด</h2>
-      <p style="color: #7f8c8d; margin-bottom: 25px;">ยินดีต้อนรับเข้าสู่ระบบจัดการคะแนนนิสิต</p>
+    <div class="step active" id="step1">
+      <h3>ส่วนที่ 1: ข้อมูลนิสิต</h3>
+      <label>กลุ่ม:</label>
+      <input type="number" name="group" required placeholder="ระบุกลุ่ม (เช่น 1, 2)">
       
-      <button class="btn" onclick="goToPage('page2')">เริ่มต้นกรอกข้อมูลรายวิชา</button>
+      <label>รหัสนิสิต:</label>
+      <input type="text" name="studentId" required placeholder="ระบุรหัสนิสิต">
+      
+      <label>ชื่อ-สกุล:</label>
+      <input type="text" name="studentName" required placeholder="ระบุชื่อ-สกุล">
+      
+      <div class="btn-group">
+        <div></div>
+        <button type="button" class="btn-next" onclick="nextStep(1, 2)">ถัดไป ➔</button>
+      </div>
     </div>
 
+    <div class="step" id="step2">
+      <h3>ส่วนที่ 2: คะแนน MEQ</h3>
+      <label>MEQ Gen 1:</label>
+      <input type="number" step="any" name="meq1" required>
+      <label>MEQ Gen 2:</label>
+      <input type="number" step="any" name="meq2" required>
+      <label>MEQ Plastic:</label>
+      <input type="number" step="any" name="meq3" required>
+      <label>MEQ URO:</label>
+      <input type="number" step="any" name="meq4" required>
+      
+      <div class="btn-group">
+        <button type="button" class="btn-prev" onclick="prevStep(2, 1)">⬅ ย้อนกลับ</button>
+      </div>
+      
+      <button type="submit" class="btn-submit" id="submitBtn">💾 บันทึกข้อมูล</button>
+    </div>
 
-    <div id="page2" class="page">
-      <h3>ข้อมูลรายวิชา</h3>
-      <form id="courseForm">
+  </form>
+  <div id="message"></div>
+</div>
+
+<script>
+  function nextStep(current, next) {
+    document.getElementById('step' + current).classList.remove('active');
+    document.getElementById('step' + next).classList.add('active');
+  }
+
+  function prevStep(current, prev) {
+    document.getElementById('step' + current).classList.remove('active');
+    document.getElementById('step' + prev).classList.add('active');
+  }
+
+  function submitData() {
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('submitBtn').innerText = "กำลังบันทึก...";
+    
+    const form = document.getElementById('scoreForm');
+    
+    google.script.run
+      .withSuccessHandler(function(response) {
+        document.getElementById('message').innerText = response;
+        form.reset(); 
+        document.getElementById('submitBtn').disabled = false;
+        document.getElementById('submitBtn').innerText = "💾 บันทึกข้อมูล";
         
-        <div class="row">
-          <div class="col form-group">
-            <label>รหัสวิชา:</label>
-            <input type="text" id="subjectCode" placeholder="เช่น 499414">
-          </div>
-          <div class="col form-group">
-            <label>ชื่อรายวิชา:</label>
-            <input type="text" id="subjectName" placeholder="เช่น ทฤษฎีทางศัลยศาสตร์ 1">
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="col form-group">
-            <label>กลุ่มงาน:</label>
-            <input type="text" id="department" placeholder="เช่น ศัลยกรรม">
-          </div>
-          <div class="col form-group">
-            <label>ปีที่เรียน / กลุ่ม:</label>
-            <input type="text" id="yearGroup" placeholder="เช่น ปี 4 กลุ่ม 2 (4)">
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>ปีการศึกษา:</label>
-          <input type="text" id="academicYear" placeholder="เช่น 2568">
-        </div>
-
-        <div class="row">
-          <div class="col form-group">
-            <label>วันที่เริ่มต้น:</label>
-            <input type="date" id="startDate">
-          </div>
-          <div class="col form-group">
-            <label>วันที่สิ้นสุด:</label>
-            <input type="date" id="endDate">
-          </div>
-        </div>
-
-        <button type="button" class="btn" onclick="alert('เดี๋ยวเราไปทำหน้า 3 ฟอร์มกรอกคะแนน กันต่อนะครับ!')">ถัดไป (ฟอร์มกรอกคะแนน)</button>
-        <button type="button" class="btn btn-secondary" onclick="goToPage('page1')">ย้อนกลับ</button>
-      </form>
-    </div>
-
-  </div>
-
-  <script>
-    // ฟังก์ชันสำหรับสลับหน้า
-    function goToPage(pageId) {
-      // ซ่อนทุกหน้า
-      var pages = document.querySelectorAll('.page');
-      pages.forEach(function(page) {
-        page.classList.remove('active');
-      });
-      // แสดงเฉพาะหน้าที่ต้องการ
-      document.getElementById(pageId).classList.add('active');
-    }
-  </script>
+        // กลับไปหน้า 1
+        setTimeout(function() {
+          document.getElementById('step2').classList.remove('active');
+          document.getElementById('step1').classList.add('active');
+          document.getElementById('message').innerText = "";
+        }, 2000);
+      })
+      .saveData(form);
+  }
+</script>
 
 </body>
 </html>
