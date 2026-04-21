@@ -2,82 +2,150 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>ทดสอบ API กับ GitHub</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบบันทึกคะแนน</title>
   <style>
-    body { font-family: 'Sarabun', sans-serif; padding: 20px; background: #f0f2f5; }
-    .box { background: white; padding: 20px; border-radius: 10px; max-width: 400px; margin: 0 auto; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-    select, input, button { width: 100%; padding: 10px; margin-top: 10px; box-sizing: border-box; }
-    .btn-add { background: #1a73e8; color: white; border: none; cursor:pointer; font-weight: bold; border-radius: 5px;}
+    body { font-family: 'Sarabun', sans-serif; background-color: #f0f2f5; padding: 20px; }
+    .container { max-width: 500px; margin: 0 auto; background: white; padding: 20px 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; margin-bottom: 20px; }
+    label { font-weight: bold; margin-top: 10px; display: block; color: #333; }
+    input, select { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+    .btn-submit { background-color: #34a853; color: white; width: 100%; padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; }
+    .btn-submit:disabled { background-color: #9e9e9e; cursor: not-allowed; }
+    
+    /* ส่วนของการตั้งค่า */
+    .settings-panel { display: none; background: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #ddd; }
+    .btn-add { background: #1a73e8; color: white; border: none; padding: 8px; cursor:pointer; border-radius: 5px; width: 100%; }
+    .settings-icon { cursor: pointer; font-size: 20px; }
   </style>
 </head>
 <body>
 
-<div class="box">
-  <h2 style="text-align: center; color: #333;">ดึงข้อมูลจาก GitHub</h2>
+<div class="container">
+  <div class="header">
+    <h2 style="margin: 0;">ระบบบันทึกคะแนน</h2>
+    <span class="settings-icon" onclick="toggleSettings()">⚙️ จัดการวิชา</span>
+  </div>
+
+  <div id="settingsPanel" class="settings-panel">
+    <label>เพิ่มวิชาใหม่:</label>
+    <input type="text" id="newCourse" placeholder="พิมพ์ชื่อวิชาที่นี่">
+    <button class="btn-add" onclick="saveCourse()">➕ เพิ่มรายวิชา</button>
+  </div>
   
-  <label>เลือกวิชา:</label>
+  <label>รายวิชา:</label>
   <select id="course">
     <option value="">-- กำลังโหลดข้อมูล... --</option>
   </select>
 
-  <hr style="margin:20px 0;">
-  
-  <label>เพิ่มวิชาใหม่:</label>
-  <input type="text" id="newCourse" placeholder="พิมพ์ชื่อวิชาที่นี่">
-  <button class="btn-add" onclick="saveCourse()">➕ เพิ่มรายวิชา</button>
+  <label>กลุ่มเรียน:</label>
+  <input type="text" id="group" placeholder="เช่น sec 1, กลุ่ม A">
+
+  <label>รหัสนิสิต:</label>
+  <input type="number" id="studentId" placeholder="กรอกรหัสนิสิต">
+
+  <label>ชื่อ-นามสกุล:</label>
+  <input type="text" id="studentName" placeholder="กรอกชื่อ-นามสกุล">
+
+  <label>คะแนน (MEQ):</label>
+  <input type="number" id="meqScore" placeholder="กรอกคะแนน">
+
+  <button id="submitBtn" class="btn-submit" onclick="submitData()">💾 บันทึกข้อมูล</button>
 </div>
 
 <script>
-  // 📍 เอา URL ยาวๆ ที่ได้จากการ Deploy Apps Script มาวางในเครื่องหมายคำพูดด้านล่างนี้เลยครับ
+  // 📍 เอา URL ใหม่มาใส่ตรงนี้ครับ!
   const API_URL = "https://script.google.com/macros/s/AKfycbzq9lY014xqSuD0uxUSrXWEebatzwkxpRrZVwScTSAJVbAVeC0zc6jvxV7ytgjv4TNY/exec"; 
 
-  // เมื่อหน้าเว็บโหลดเสร็จ ให้ดึงข้อมูลวิชาทันที
-  document.addEventListener("DOMContentLoaded", function() {
-    loadCourses();
-  });
+  document.addEventListener("DOMContentLoaded", loadCourses);
 
+  function toggleSettings() {
+    const panel = document.getElementById('settingsPanel');
+    panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+  }
+
+  // 1. ดึงรายวิชา
   function loadCourses() {
     fetch(API_URL + "?action=getCourses")
       .then(response => response.json())
-      .then(courses => {
-        updateDropdown(courses);
-      })
-      .catch(error => {
-        alert("เกิดข้อผิดพลาดในการเชื่อมต่อ: " + error);
-      });
+      .then(updateDropdown)
+      .catch(err => alert("โหลดวิชาไม่ได้: " + err));
   }
 
+  // 2. เพิ่มรายวิชา
   function saveCourse() {
     const courseName = document.getElementById('newCourse').value;
-    if(!courseName) return alert("กรุณาพิมพ์ชื่อวิชาก่อน");
+    if(!courseName) return;
 
-    const inputField = document.getElementById('newCourse');
-    inputField.value = "กำลังเพิ่ม...";
-    inputField.disabled = true;
-
-    // ยิง API ไปเพิ่มวิชา
+    document.getElementById('newCourse').disabled = true;
+    
     fetch(API_URL + "?action=addCourse&name=" + encodeURIComponent(courseName))
       .then(response => response.json())
       .then(courses => {
         updateDropdown(courses);
-        inputField.value = "";
-        inputField.disabled = false;
+        document.getElementById('newCourse').value = "";
+        document.getElementById('newCourse').disabled = false;
         alert("เพิ่มรายวิชาสำเร็จ!");
-      })
-      .catch(error => {
-        alert("บันทึกไม่สำเร็จ: " + error);
-        inputField.disabled = false;
       });
   }
 
   function updateDropdown(courses) {
     const select = document.getElementById('course');
-    select.innerHTML = '<option value="">-- กรุณาเลือกรายวิชา --</option>';
-    if(courses.length === 0) {
-      select.innerHTML += '<option value="">(ยังไม่มีวิชาในระบบ)</option>';
+    select.innerHTML = '<option value="">-- เลือกรายวิชา --</option>';
+    courses.forEach(c => select.innerHTML += `<option value="${c}">${c}</option>`);
+  }
+
+  // 3. บันทึกข้อมูลคะแนน
+  function submitData() {
+    const course = document.getElementById('course').value;
+    const group = document.getElementById('group').value;
+    const studentId = document.getElementById('studentId').value;
+    const studentName = document.getElementById('studentName').value;
+    const meqScore = document.getElementById('meqScore').value;
+
+    if(!course || !studentId) {
+      return alert("กรุณาเลือกวิชาและกรอกรหัสนิสิตให้ครบถ้วนครับ");
     }
-    courses.forEach(c => {
-      select.innerHTML += `<option value="${c}">${c}</option>`;
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = "⏳ กำลังบันทึก...";
+
+    // แพ็กข้อมูลเป็น JSON
+    const payload = {
+      action: 'saveData',
+      course: course,
+      group: group,
+      studentId: studentId,
+      studentName: studentName,
+      meqScores: [meqScore] // ส่งเป็นอาเรย์เผื่ออนาคตมีหลายคะแนน
+    };
+
+    // ส่งแบบ POST (ใช้ text/plain เพื่อหลีกเลี่ยง CORS ของ Google)
+    fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    })
+    .then(response => response.json())
+    .then(result => {
+      if(result.status === "success") {
+        alert("บันทึกข้อมูลเรียบร้อย!");
+        // เคลียร์ช่องให้พร้อมกรอกคนต่อไป (เว้นวิชาและกลุ่มไว้)
+        document.getElementById('studentId').value = '';
+        document.getElementById('studentName').value = '';
+        document.getElementById('meqScore').value = '';
+        document.getElementById('studentId').focus(); // เด้งไปที่ช่องรหัสทันที
+      } else {
+        alert("เกิดข้อผิดพลาด: " + result.message);
+      }
+      btn.disabled = false;
+      btn.innerHTML = "💾 บันทึกข้อมูล";
+    })
+    .catch(err => {
+      alert("ไม่สามารถติดต่อเซิร์ฟเวอร์ได้: " + err);
+      btn.disabled = false;
+      btn.innerHTML = "💾 บันทึกข้อมูล";
     });
   }
 </script>
