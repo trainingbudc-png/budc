@@ -3,13 +3,20 @@
 <head>
   <base target="_top">
   <style>
-    body { font-family: 'Sarabun', sans-serif; background-color: #f0f2f5; padding: 20px; }
-    .container { max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    body { font-family: 'Sarabun', sans-serif; background-color: #f0f2f5; padding: 20px; margin: 0;}
+    .container { max-width: 500px; margin: 0 auto; background: white; padding: 20px 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); position: relative;}
+    
+    /* Header & ฟันเฟือง */
+    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; margin-bottom: 20px; }
+    .header h2 { color: #1a73e8; margin: 0; }
+    .settings-icon { font-size: 24px; cursor: pointer; transition: 0.3s; }
+    .settings-icon:hover { transform: rotate(90deg); }
+
     .step { display: none; }
     .step.active { display: block; }
-    h2 { color: #1a73e8; text-align: center; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; }
     label { font-weight: bold; display: block; margin-top: 15px; }
     input, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-family: 'Sarabun', sans-serif;}
+    
     .meq-row { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
     .meq-row input { flex: 1; }
     .btn-add { background-color: #fbbc05; color: black; width: 100%; margin-top: 15px; border: none; padding: 8px; border-radius: 5px; cursor: pointer; font-weight: bold;}
@@ -19,109 +26,161 @@
     .btn-next { background-color: #1a73e8; color: white; }
     .btn-prev { background-color: #e0e0e0; color: #333; }
     .btn-submit { background-color: #34a853; color: white; width: 100%; margin-top: 20px; }
+
+    /* Modal ตั้งค่า */
+    .modal { display: none; position: fixed; z-index: 10; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+    .modal-content { background-color: white; margin: 15% auto; padding: 20px; border-radius: 10px; width: 90%; max-width: 400px; }
+    .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+    .close:hover { color: black; }
+    .course-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+    .course-item button { background-color: #ea4335; color: white; border: none; border-radius: 3px; padding: 4px 8px; cursor: pointer; font-size: 12px; }
+    .add-course-container { display: flex; gap: 10px; margin-top: 15px; }
+    .btn-add-course { background-color: #1a73e8; color: white; border: none; border-radius: 5px; padding: 10px; cursor: pointer; white-space: nowrap;}
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h2>ระบบบันทึกคะแนน </h2>
+  <div class="header">
+    <h2>ระบบบันทึกคะแนน</h2>
+    <span class="settings-icon" onclick="openSettings()">⚙️</span>
+  </div>
   
-  <div class="step active" id="step1">
-    <h3>ส่วนที่ 1: ข้อมูลนิสิต</h3>
-    
-    <label>รายวิชา:</label>
-    <select id="course" required>
-      <option value="">-- กรุณาเลือกรายวิชา --</option>
-      <option value="499414 - ทฤษฎีทางศัลยศาสตร์ 1">499414 - ทฤษฎีทางศัลยศาสตร์ 1</option>
-      <option value="499415 - ทฤษฎีทางศัลยศาสตร์ 2">499415 - ทฤษฎีทางศัลยศาสตร์ 2</option>
+  <form id="scoreForm" onsubmit="event.preventDefault(); submitData();">
+    <div class="step active" id="step1">
+      <label>รายวิชา:</label>
+      <select id="course" required>
+        <option value="">-- กำลังโหลดรายวิชา... --</option>
       </select>
 
-    <label>กลุ่ม:</label>
-    <input type="number" id="group" required>
-    
-    <label>รหัสนิสิต:</label>
-    <input type="text" id="studentId" required>
-    
-    <label>ชื่อ-สกุล:</label>
-    <input type="text" id="studentName" required>
-    
-    <div class="btn-group">
-      <div></div>
-      <button class="btn-next" onclick="nextStep(1, 2)">ถัดไป ➔</button>
-    </div>
-  </div>
-
-  <div class="step" id="step2">
-    <h3>ส่วนที่ 2: คะแนน MEQ</h3>
-    <div id="meq-container">
-      <div class="meq-row">
-        <input type="number" step="any" class="meq-input" placeholder="คะแนนหัวข้อที่ 1">
+      <label>กลุ่ม:</label>
+      <input type="number" id="group" required>
+      <label>รหัสนิสิต:</label>
+      <input type="text" id="studentId" required>
+      <label>ชื่อ-สกุล:</label>
+      <input type="text" id="studentName" required>
+      <div class="btn-group">
+        <div></div>
+        <button type="button" class="btn-next" onclick="nextStep(1, 2)">ถัดไป ➔</button>
       </div>
     </div>
-    <button class="btn-add" onclick="addMeqField()">➕ เพิ่มหัวข้อคะแนน (MEQ)</button>
-    
-    <div class="btn-group">
-      <button class="btn-prev" onclick="prevStep(2, 1)">⬅ ย้อนกลับ</button>
+
+    <div class="step" id="step2">
+      <div id="meq-container">
+        <div class="meq-row"><input type="number" step="any" class="meq-input" placeholder="คะแนนหัวข้อที่ 1" required></div>
+      </div>
+      <button type="button" class="btn-add" onclick="addMeqField()">➕ เพิ่มหัวข้อคะแนน (MEQ)</button>
+      <div class="btn-group">
+        <button type="button" class="btn-prev" onclick="prevStep(2, 1)">⬅ ย้อนกลับ</button>
+      </div>
+      <button type="submit" class="btn-submit" id="submitBtn">💾 บันทึกข้อมูล</button>
+      <div id="message" style="text-align:center; margin-top:15px;"></div>
     </div>
-    <button class="btn-submit" id="submitBtn" onclick="submitData()">💾 บันทึกข้อมูลทั้งหมด</button>
-    <div id="message" style="text-align:center; margin-top:15px;"></div>
+  </form>
+</div>
+
+<div id="settingsModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeSettings()">&times;</span>
+    <h3>⚙️ จัดการรายวิชา</h3>
+    <div id="courseListArea">กำลังโหลด...</div>
+    <div class="add-course-container">
+      <input type="text" id="newCourseName" placeholder="ชื่อรายวิชาใหม่">
+      <button type="button" class="btn-add-course" onclick="addNewCourse()">เพิ่ม</button>
+    </div>
   </div>
 </div>
 
 <script>
+  // โหลดรายวิชาทันทีที่เปิดเว็บ
+  document.addEventListener("DOMContentLoaded", function() {
+    loadCourses();
+  });
+
+  function loadCourses() {
+    google.script.run.withSuccessHandler(updateCourseDropdown).getCourses();
+  }
+
+  function updateCourseDropdown(courses) {
+    // อัปเดต Dropdown
+    const select = document.getElementById('course');
+    select.innerHTML = '<option value="">-- กรุณาเลือกรายวิชา --</option>';
+    
+    // อัปเดต Modal ตั้งค่า
+    const listArea = document.getElementById('courseListArea');
+    listArea.innerHTML = '';
+
+    if(courses.length === 0) {
+      listArea.innerHTML = '<p style="color:gray; font-size:14px;">ยังไม่มีรายวิชาในระบบ</p>';
+    }
+
+    courses.forEach(c => {
+      select.innerHTML += `<option value="${c}">${c}</option>`;
+      listArea.innerHTML += `
+        <div class="course-item">
+          <span>${c}</span>
+          <button onclick="removeCourse('${c}')">ลบ</button>
+        </div>`;
+    });
+  }
+
+  // เปิด/ปิด Modal
+  function openSettings() { document.getElementById('settingsModal').style.display = 'block'; }
+  function closeSettings() { document.getElementById('settingsModal').style.display = 'none'; }
+
+  // เพิ่มวิชาผ่านเว็บ
+  function addNewCourse() {
+    const newCourse = document.getElementById('newCourseName').value.trim();
+    if(!newCourse) return;
+    document.getElementById('newCourseName').value = 'กำลังเพิ่ม...';
+    document.getElementById('newCourseName').disabled = true;
+    
+    google.script.run.withSuccessHandler(function(updatedCourses) {
+      updateCourseDropdown(updatedCourses);
+      document.getElementById('newCourseName').value = '';
+      document.getElementById('newCourseName').disabled = false;
+    }).addCourse(newCourse);
+  }
+
+  // ลบวิชาผ่านเว็บ
+  function removeCourse(courseName) {
+    if(confirm(`ต้องการลบรายวิชา "${courseName}" ใช่หรือไม่?`)) {
+      document.getElementById('courseListArea').innerHTML = 'กำลังลบ...';
+      google.script.run.withSuccessHandler(updateCourseDropdown).deleteCourse(courseName);
+    }
+  }
+
   function addMeqField() {
     const container = document.getElementById('meq-container');
     const rowCount = container.getElementsByClassName('meq-row').length + 1;
     const div = document.createElement('div');
     div.className = 'meq-row';
-    div.innerHTML = `
-      <input type="number" step="any" class="meq-input" placeholder="คะแนนหัวข้อที่ ${rowCount}">
-      <button class="btn-del" onclick="this.parentElement.remove()">ลบ</button>
-    `;
+    div.innerHTML = `<input type="number" step="any" class="meq-input" placeholder="คะแนนหัวข้อที่ ${rowCount}" required>
+                     <button type="button" class="btn-del" onclick="this.parentElement.remove()">ลบ</button>`;
     container.appendChild(div);
   }
 
-  function nextStep(current, next) {
-    document.getElementById('step' + current).classList.remove('active');
-    document.getElementById('step' + next).classList.add('active');
-  }
-
-  function prevStep(current, prev) {
-    document.getElementById('step' + current).classList.remove('active');
-    document.getElementById('step' + prev).classList.add('active');
-  }
+  function nextStep(c, n) { document.getElementById('step'+c).classList.remove('active'); document.getElementById('step'+n).classList.add('active'); }
+  function prevStep(c, p) { document.getElementById('step'+c).classList.remove('active'); document.getElementById('step'+p).classList.add('active'); }
 
   function submitData() {
-    // เช็คว่าเลือกวิชาหรือยัง
     const course = document.getElementById('course').value;
-    if(!course) {
-      alert("กรุณาเลือกรายวิชาก่อนบันทึก");
-      return;
-    }
-
+    if(!course) { alert("กรุณาเลือกรายวิชาก่อนบันทึก"); return; }
+    
     const btn = document.getElementById('submitBtn');
-    btn.disabled = true;
-    btn.innerText = "กำลังบันทึก...";
-
+    btn.disabled = true; btn.innerText = "กำลังบันทึก...";
+    
     const payload = {
-      course: course, // ส่งค่ารายวิชาไปด้วย
-      group: document.getElementById('group').value,
-      studentId: document.getElementById('studentId').value,
-      studentName: document.getElementById('studentName').value,
+      course: course, group: document.getElementById('group').value,
+      studentId: document.getElementById('studentId').value, studentName: document.getElementById('studentName').value,
       meqScores: []
     };
+    for (let input of document.getElementsByClassName('meq-input')) { payload.meqScores.push(input.value); }
 
-    const meqInputs = document.getElementsByClassName('meq-input');
-    for (let input of meqInputs) {
-      payload.meqScores.push(input.value);
-    }
-
-    google.script.run
-      .withSuccessHandler(function(res) {
-        document.getElementById('message').innerHTML = `<span style="color:green">${res}</span>`;
-        setTimeout(() => { location.reload(); }, 1500);
-      })
-      .saveData(payload);
+    google.script.run.withSuccessHandler(res => {
+      document.getElementById('message').innerHTML = `<span style="color:green">${res}</span>`;
+      setTimeout(() => location.reload(), 1500);
+    }).saveData(payload);
   }
 </script>
 
