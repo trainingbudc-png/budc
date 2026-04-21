@@ -9,61 +9,68 @@
     .step.active { display: block; }
     h2 { color: #1a73e8; text-align: center; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; }
     label { font-weight: bold; display: block; margin-top: 15px; }
-    input[type="text"], input[type="number"] { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+    input { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+    .meq-row { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
+    .meq-row input { flex: 1; }
+    .btn-add { background-color: #fbbc05; color: black; width: 100%; margin-top: 15px; border: none; padding: 8px; border-radius: 5px; cursor: pointer; font-weight: bold;}
+    .btn-del { background-color: #ea4335; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; margin-top: 5px;}
     .btn-group { display: flex; justify-content: space-between; margin-top: 25px; }
     button { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; }
     .btn-next { background-color: #1a73e8; color: white; }
     .btn-prev { background-color: #e0e0e0; color: #333; }
-    .btn-submit { background-color: #34a853; color: white; width: 100%; margin-top: 20px;}
-    #message { text-align: center; margin-top: 15px; font-weight: bold; color: green; }
+    .btn-submit { background-color: #34a853; color: white; width: 100%; margin-top: 20px; }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h2>ระบบบันทึกคะแนน (เฟส 1)</h2>
-  <form id="scoreForm" onsubmit="event.preventDefault(); submitData();">
+  <h2>ระบบบันทึกคะแนน </h2>
+  
+  <div class="step active" id="step1">
+    <h3>ส่วนที่ 1: ข้อมูลนิสิต</h3>
+    <label>กลุ่ม:</label>
+    <input type="number" id="group" required>
+    <label>รหัสนิสิต:</label>
+    <input type="text" id="studentId" required>
+    <label>ชื่อ-สกุล:</label>
+    <input type="text" id="studentName" required>
+    <div class="btn-group">
+      <div></div>
+      <button class="btn-next" onclick="nextStep(1, 2)">ถัดไป ➔</button>
+    </div>
+  </div>
+
+  <div class="step" id="step2">
+    <h3>ส่วนที่ 2: คะแนน MEQ</h3>
+    <div id="meq-container">
+      <div class="meq-row">
+        <input type="number" step="any" class="meq-input" placeholder="คะแนนหัวข้อที่ 1">
+      </div>
+    </div>
+    <button class="btn-add" onclick="addMeqField()">➕ เพิ่มหัวข้อคะแนน (MEQ)</button>
     
-    <div class="step active" id="step1">
-      <h3>ส่วนที่ 1: ข้อมูลนิสิต</h3>
-      <label>กลุ่ม:</label>
-      <input type="number" name="group" required placeholder="ระบุกลุ่ม (เช่น 1, 2)">
-      
-      <label>รหัสนิสิต:</label>
-      <input type="text" name="studentId" required placeholder="ระบุรหัสนิสิต">
-      
-      <label>ชื่อ-สกุล:</label>
-      <input type="text" name="studentName" required placeholder="ระบุชื่อ-สกุล">
-      
-      <div class="btn-group">
-        <div></div>
-        <button type="button" class="btn-next" onclick="nextStep(1, 2)">ถัดไป ➔</button>
-      </div>
+    <div class="btn-group">
+      <button class="btn-prev" onclick="prevStep(2, 1)">⬅ ย้อนกลับ</button>
     </div>
-
-    <div class="step" id="step2">
-      <h3>ส่วนที่ 2: คะแนน MEQ</h3>
-      <label>MEQ Gen 1:</label>
-      <input type="number" step="any" name="meq1" required>
-      <label>MEQ Gen 2:</label>
-      <input type="number" step="any" name="meq2" required>
-      <label>MEQ Plastic:</label>
-      <input type="number" step="any" name="meq3" required>
-      <label>MEQ URO:</label>
-      <input type="number" step="any" name="meq4" required>
-      
-      <div class="btn-group">
-        <button type="button" class="btn-prev" onclick="prevStep(2, 1)">⬅ ย้อนกลับ</button>
-      </div>
-      
-      <button type="submit" class="btn-submit" id="submitBtn">💾 บันทึกข้อมูล</button>
-    </div>
-
-  </form>
-  <div id="message"></div>
+    <button class="btn-submit" id="submitBtn" onclick="submitData()">💾 บันทึกข้อมูลทั้งหมด</button>
+    <div id="message" style="text-align:center; margin-top:15px;"></div>
+  </div>
 </div>
 
 <script>
+  // ฟังก์ชันเพิ่มช่องกรอก MEQ
+  function addMeqField() {
+    const container = document.getElementById('meq-container');
+    const rowCount = container.getElementsByClassName('meq-row').length + 1;
+    const div = document.createElement('div');
+    div.className = 'meq-row';
+    div.innerHTML = `
+      <input type="number" step="any" class="meq-input" placeholder="คะแนนหัวข้อที่ ${rowCount}">
+      <button class="btn-del" onclick="this.parentElement.remove()">ลบ</button>
+    `;
+    container.appendChild(div);
+  }
+
   function nextStep(current, next) {
     document.getElementById('step' + current).classList.remove('active');
     document.getElementById('step' + next).classList.add('active');
@@ -75,26 +82,33 @@
   }
 
   function submitData() {
-    document.getElementById('submitBtn').disabled = true;
-    document.getElementById('submitBtn').innerText = "กำลังบันทึก...";
-    
-    const form = document.getElementById('scoreForm');
-    
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerText = "กำลังบันทึก...";
+
+    // เก็บข้อมูลจากหน้า 1
+    const payload = {
+      group: document.getElementById('group').value,
+      studentId: document.getElementById('studentId').value,
+      studentName: document.getElementById('studentName').value,
+      meqScores: []
+    };
+
+    // เก็บข้อมูลคะแนน MEQ ทุกช่องที่มีในหน้า 2
+    const meqInputs = document.getElementsByClassName('meq-input');
+    for (let input of meqInputs) {
+      payload.meqScores.push(input.value);
+    }
+
     google.script.run
-      .withSuccessHandler(function(response) {
-        document.getElementById('message').innerText = response;
-        form.reset(); 
-        document.getElementById('submitBtn').disabled = false;
-        document.getElementById('submitBtn').innerText = "💾 บันทึกข้อมูล";
-        
-        // กลับไปหน้า 1
-        setTimeout(function() {
-          document.getElementById('step2').classList.remove('active');
-          document.getElementById('step1').classList.add('active');
-          document.getElementById('message').innerText = "";
-        }, 2000);
+      .withSuccessHandler(function(res) {
+        document.getElementById('message').innerHTML = `<span style="color:green">${res}</span>`;
+        // ล้างข้อมูลและกลับไปหน้า 1
+        setTimeout(() => {
+          location.reload(); // รีโหลดเพื่อล้างค่าทั้งหมดให้พร้อมคนถัดไป
+        }, 1500);
       })
-      .saveData(form);
+      .saveData(payload);
   }
 </script>
 
