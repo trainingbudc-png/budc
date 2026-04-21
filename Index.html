@@ -3,152 +3,191 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ระบบบันทึกคะแนน</title>
+  <title>ระบบบันทึกคะแนนแบบยืดหยุ่น</title>
   <style>
-    body { font-family: 'Sarabun', sans-serif; background-color: #f0f2f5; padding: 20px; }
-    .container { max-width: 500px; margin: 0 auto; background: white; padding: 20px 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; margin-bottom: 20px; }
-    label { font-weight: bold; margin-top: 10px; display: block; color: #333; }
-    input, select { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-    .btn-submit { background-color: #34a853; color: white; width: 100%; padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; }
-    .btn-submit:disabled { background-color: #9e9e9e; cursor: not-allowed; }
+    body { font-family: 'Sarabun', sans-serif; background-color: #f4f7f9; padding: 15px; margin: 0; }
+    .container { max-width: 500px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+    label { font-weight: bold; display: block; margin-top: 12px; color: #444; }
+    input, select { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
+    .btn-submit { background: #28a745; color: white; width: 100%; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 20px; }
     
-    /* ส่วนของการตั้งค่า */
-    .settings-panel { display: none; background: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #ddd; }
-    .btn-add { background: #1a73e8; color: white; border: none; padding: 8px; cursor:pointer; border-radius: 5px; width: 100%; }
-    .settings-icon { cursor: pointer; font-size: 20px; }
+    /* ระบบจัดการหัวข้อคะแนน */
+    .settings-panel { display: none; background: #fff; border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
+    .score-setup-item { display: flex; gap: 5px; margin-bottom: 8px; }
+    .btn-remove-field { background: #dc3545; color: white; border: none; border-radius: 5px; padding: 0 10px; cursor: pointer; }
+    .btn-add-field { background: #6c757d; color: white; border: none; padding: 8px; border-radius: 5px; cursor: pointer; font-size: 13px; width: 100%; margin-top: 5px; }
+    
+    .score-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f8f9fa; padding: 10px; border-radius: 8px; border: 1px dashed #ccc; }
+    .score-grid label { margin-top: 5px; font-size: 13px; }
   </style>
 </head>
 <body>
 
 <div class="container">
   <div class="header">
-    <h2 style="margin: 0;">ระบบบันทึกคะแนน</h2>
-    <span class="settings-icon" onclick="toggleSettings()">⚙️ จัดการวิชา</span>
+    <h3 style="margin:0; color:#1a73e8;">📝 บันทึกคะแนน</h3>
+    <span style="cursor:pointer; font-size:20px;" onclick="toggleSettings()">⚙️</span>
   </div>
 
   <div id="settingsPanel" class="settings-panel">
-    <label>เพิ่มวิชาใหม่:</label>
-    <input type="text" id="newCourse" placeholder="พิมพ์ชื่อวิชาที่นี่">
-    <button class="btn-add" onclick="saveCourse()">➕ เพิ่มรายวิชา</button>
+    <h4 style="margin-top:0;">ตั้งค่าระบบ</h4>
+    <label>1. เพิ่มวิชาใหม่:</label>
+    <div style="display:flex; gap:5px;">
+      <input type="text" id="newCourse" placeholder="ชื่อวิชา">
+      <button onclick="saveCourse()" style="width:80px;">เพิ่ม</button>
+    </div>
+    
+    <label style="margin-top:15px;">2. จัดการหัวข้อคะแนน:</label>
+    <div id="scoreFieldsConfig">
+      </div>
+    <button class="btn-add-field" onclick="addScoreFieldConfig('หัวข้อใหม่')">➕ เพิ่มหัวข้อคะแนน</button>
+    <p style="font-size:11px; color:gray;">* การเปลี่ยนหัวข้อคะแนนกลางคันอาจทำให้หัวตารางใน Sheet สับสนได้</p>
   </div>
-  
-  <label>รายวิชา:</label>
-  <select id="course">
-    <option value="">-- กำลังโหลดข้อมูล... --</option>
-  </select>
 
-  <label>กลุ่มเรียน:</label>
-  <input type="text" id="group" placeholder="เช่น sec 1, กลุ่ม A">
+  <label>วิชา:</label>
+  <select id="course"><option>กำลังโหลด...</option></select>
 
-  <label>รหัสนิสิต:</label>
-  <input type="number" id="studentId" placeholder="กรอกรหัสนิสิต">
+  <div style="display:flex; gap:10px;">
+    <div style="flex:1;"><label>กลุ่ม:</label><input type="text" id="group" placeholder="Sec"></div>
+    <div style="flex:2;"><label>รหัสนิสิต:</label><input type="number" id="studentId"></div>
+  </div>
 
   <label>ชื่อ-นามสกุล:</label>
-  <input type="text" id="studentName" placeholder="กรอกชื่อ-นามสกุล">
+  <input type="text" id="studentName">
 
-  <label>คะแนน (MEQ):</label>
-  <input type="number" id="meqScore" placeholder="กรอกคะแนน">
+  <label>กรอกคะแนน:</label>
+  <div id="dynamicScoreInputs" class="score-grid">
+    </div>
 
   <button id="submitBtn" class="btn-submit" onclick="submitData()">💾 บันทึกข้อมูล</button>
 </div>
 
 <script>
-  // 📍 เอา URL ใหม่มาใส่ตรงนี้ครับ!
   const API_URL = "https://script.google.com/macros/s/AKfycbzq9lY014xqSuD0uxUSrXWEebatzwkxpRrZVwScTSAJVbAVeC0zc6jvxV7ytgjv4TNY/exec"; 
+  
+  // หัวข้อคะแนนเริ่มต้น
+  let scoreLabels = JSON.parse(localStorage.getItem('scoreLabels')) || ['คะแนน MEQ 1'];
 
-  document.addEventListener("DOMContentLoaded", loadCourses);
+  document.addEventListener("DOMContentLoaded", () => {
+    loadCourses();
+    renderScoreSettings();
+    renderScoreInputs();
+  });
 
   function toggleSettings() {
-    const panel = document.getElementById('settingsPanel');
-    panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+    const p = document.getElementById('settingsPanel');
+    p.style.display = p.style.display === 'block' ? 'none' : 'block';
   }
 
-  // 1. ดึงรายวิชา
+  // --- จัดการหัวข้อคะแนน ---
+  function renderScoreSettings() {
+    const container = document.getElementById('scoreFieldsConfig');
+    container.innerHTML = '';
+    scoreLabels.forEach((label, index) => {
+      container.innerHTML += `
+        <div class="score-setup-item">
+          <input type="text" value="${label}" onchange="updateLabel(${index}, this.value)">
+          <button class="btn-remove-field" onclick="removeScoreField(${index})">✕</button>
+        </div>`;
+    });
+  }
+
+  function addScoreFieldConfig(text) {
+    scoreLabels.push(text);
+    saveAndRefresh();
+  }
+
+  function removeScoreField(index) {
+    if(scoreLabels.length <= 1) return alert("ต้องมีอย่างน้อย 1 หัวข้อครับ");
+    scoreLabels.splice(index, 1);
+    saveAndRefresh();
+  }
+
+  function updateLabel(index, val) {
+    scoreLabels[index] = val;
+    saveAndRefresh();
+  }
+
+  function saveAndRefresh() {
+    localStorage.setItem('scoreLabels', JSON.stringify(scoreLabels));
+    renderScoreSettings();
+    renderScoreInputs();
+  }
+
+  // --- สร้างช่องกรอกคะแนนตามหัวข้อ ---
+  function renderScoreInputs() {
+    const container = document.getElementById('dynamicScoreInputs');
+    container.innerHTML = '';
+    scoreLabels.forEach((label, index) => {
+      container.innerHTML += `
+        <div>
+          <label>${label}</label>
+          <input type="number" class="score-input" data-label="${label}" placeholder="0">
+        </div>`;
+    });
+  }
+
+  // --- ดึงข้อมูลวิชา ---
   function loadCourses() {
-    fetch(API_URL + "?action=getCourses")
-      .then(response => response.json())
-      .then(updateDropdown)
-      .catch(err => alert("โหลดวิชาไม่ได้: " + err));
+    fetch(API_URL + "?action=getCourses").then(res => res.json()).then(data => {
+      const sel = document.getElementById('course');
+      sel.innerHTML = '<option value="">-- เลือกวิชา --</option>';
+      data.forEach(c => sel.innerHTML += `<option value="${c}">${c}</option>`);
+    });
   }
 
-  // 2. เพิ่มรายวิชา
   function saveCourse() {
-    const courseName = document.getElementById('newCourse').value;
-    if(!courseName) return;
-
-    document.getElementById('newCourse').disabled = true;
-    
-    fetch(API_URL + "?action=addCourse&name=" + encodeURIComponent(courseName))
-      .then(response => response.json())
-      .then(courses => {
-        updateDropdown(courses);
-        document.getElementById('newCourse').value = "";
-        document.getElementById('newCourse').disabled = false;
-        alert("เพิ่มรายวิชาสำเร็จ!");
+    const name = document.getElementById('newCourse').value;
+    if(!name) return;
+    fetch(API_URL + "?action=addCourse&name=" + encodeURIComponent(name))
+      .then(res => res.json()).then(data => {
+        loadCourses();
+        document.getElementById('newCourse').value = '';
+        alert("เพิ่มวิชาสำเร็จ");
       });
   }
 
-  function updateDropdown(courses) {
-    const select = document.getElementById('course');
-    select.innerHTML = '<option value="">-- เลือกรายวิชา --</option>';
-    courses.forEach(c => select.innerHTML += `<option value="${c}">${c}</option>`);
-  }
-
-  // 3. บันทึกข้อมูลคะแนน
+  // --- บันทึกข้อมูลลง Google Sheets ---
   function submitData() {
-    const course = document.getElementById('course').value;
-    const group = document.getElementById('group').value;
-    const studentId = document.getElementById('studentId').value;
-    const studentName = document.getElementById('studentName').value;
-    const meqScore = document.getElementById('meqScore').value;
-
-    if(!course || !studentId) {
-      return alert("กรุณาเลือกวิชาและกรอกรหัสนิสิตให้ครบถ้วนครับ");
-    }
-
     const btn = document.getElementById('submitBtn');
-    btn.disabled = true;
-    btn.innerHTML = "⏳ กำลังบันทึก...";
+    const scores = [];
+    document.querySelectorAll('.score-input').forEach(input => {
+      scores.push({ label: input.getAttribute('data-label'), value: input.value });
+    });
 
-    // แพ็กข้อมูลเป็น JSON
     const payload = {
       action: 'saveData',
-      course: course,
-      group: group,
-      studentId: studentId,
-      studentName: studentName,
-      meqScores: [meqScore] // ส่งเป็นอาเรย์เผื่ออนาคตมีหลายคะแนน
+      course: document.getElementById('course').value,
+      group: document.getElementById('group').value,
+      studentId: document.getElementById('studentId').value,
+      studentName: document.getElementById('studentName').value,
+      scores: scores
     };
 
-    // ส่งแบบ POST (ใช้ text/plain เพื่อหลีกเลี่ยง CORS ของ Google)
+    if(!payload.course || !payload.studentId) return alert("กรุณาเลือกวิชาและรหัสนิสิต");
+
+    btn.disabled = true;
+    btn.innerText = "⏳ กำลังบันทึก...";
+
     fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(payload)
     })
-    .then(response => response.json())
-    .then(result => {
-      if(result.status === "success") {
-        alert("บันทึกข้อมูลเรียบร้อย!");
-        // เคลียร์ช่องให้พร้อมกรอกคนต่อไป (เว้นวิชาและกลุ่มไว้)
+    .then(res => res.json())
+    .then(res => {
+      if(res.status === 'success') {
+        alert("บันทึกสำเร็จ!");
         document.getElementById('studentId').value = '';
         document.getElementById('studentName').value = '';
-        document.getElementById('meqScore').value = '';
-        document.getElementById('studentId').focus(); // เด้งไปที่ช่องรหัสทันที
-      } else {
-        alert("เกิดข้อผิดพลาด: " + result.message);
+        document.querySelectorAll('.score-input').forEach(i => i.value = '');
+        document.getElementById('studentId').focus();
       }
       btn.disabled = false;
-      btn.innerHTML = "💾 บันทึกข้อมูล";
-    })
-    .catch(err => {
-      alert("ไม่สามารถติดต่อเซิร์ฟเวอร์ได้: " + err);
-      btn.disabled = false;
-      btn.innerHTML = "💾 บันทึกข้อมูล";
+      btn.innerText = "💾 บันทึกข้อมูล";
     });
   }
 </script>
-
 </body>
 </html>
