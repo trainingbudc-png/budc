@@ -114,12 +114,13 @@
 </div>
 
 <script>
-    // ฟังก์ชันรันตอนเปิดหน้าเว็บ: สร้างหมวดตั้งต้นให้ 1 อัน
+    // 📍 เอา URL ใหม่จาก Google Apps Script มาวางตรงนี้นะครับ
+    const API_URL = "https://script.google.com/macros/s/AKfycbzq9lY014xqSuD0uxUSrXWEebatzwkxpRrZVwScTSAJVbAVeC0zc6jvxV7ytgjv4TNY/exec";
+
     document.addEventListener("DOMContentLoaded", () => {
         addCategory("MEQ");
     });
 
-    // 1. ฟังก์ชันเพิ่ม "หมวดหลัก"
     function addCategory(defaultName = "") {
         const tbody = document.getElementById('criteriaBody');
         const tr = document.createElement('tr');
@@ -137,18 +138,12 @@
                 <input type="number" class="cat-weight" placeholder="น้ำหนัก %">
             </td>
         `;
-        
         tbody.appendChild(tr);
-        
-        // พอสร้างหมวดหลักเสร็จ ให้แถมหัวข้อย่อยให้ 1 ข้ออัตโนมัติ
-        const subContainer = tr.querySelector('.sub-container');
-        addSubTopicDirectly(subContainer);
+        addSubTopicDirectly(tr.querySelector('.sub-container'));
     }
 
-    // 2. ฟังก์ชันเพิ่ม "หัวข้อย่อย"
     function addSubTopic(btn) {
-        const container = btn.previousElementSibling;
-        addSubTopicDirectly(container);
+        addSubTopicDirectly(btn.previousElementSibling);
     }
 
     function addSubTopicDirectly(container) {
@@ -167,30 +162,77 @@
         container.appendChild(div);
     }
 
-    // 3. ฟังก์ชันลบ "หมวดหลัก"
     function removeCategory(btn) {
-        if(confirm("แน่ใจหรือไม่ว่าต้องการลบหมวดนี้และหัวข้อย่อยทั้งหมด?")) {
-            btn.closest('tr').remove();
+        if(confirm("แน่ใจหรือไม่ว่าต้องการลบหมวดนี้และหัวข้อย่อยทั้งหมด?")) btn.closest('tr').remove();
+    }
+
+    function removeSubTopic(btn) { btn.closest('.sub-row').remove(); }
+
+    // 🌟 ฟังก์ชันบันทึกข้อมูลของจริง (ส่งไป Google Sheets)
+    async function saveSetup() {
+        const courseName = document.getElementById('courseName').value;
+        const courseGroup = document.getElementById('courseGroup').value;
+        
+        if(!courseName) return alert("กรุณากรอกชื่อรายวิชาก่อนบันทึกครับ");
+
+        const btn = document.querySelector('.btn-save');
+        btn.innerText = "⏳ กำลังส่งข้อมูลไปยังฐานข้อมูล...";
+        btn.disabled = true;
+
+        // ดึงข้อมูลเกณฑ์การประเมินจากตาราง
+        const criteriaData = [];
+        document.querySelectorAll('#criteriaBody tr').forEach(tr => {
+            const catName = tr.querySelector('.cat-name').value;
+            const weight = tr.querySelector('.cat-weight').value;
+            
+            tr.querySelectorAll('.sub-row').forEach(sub => {
+                criteriaData.push({
+                    category: catName,
+                    weight: weight,
+                    subName: sub.querySelector('.sub-name').value,
+                    max: sub.querySelector('.sub-max').value,
+                    mpl: sub.querySelector('.sub-mpl').value
+                });
+            });
+        });
+
+        // จัดเตรียมชุดข้อมูลทั้งหมด
+        const payload = {
+            action: 'saveSetup',
+            courseName: courseName,
+            courseGroup: courseGroup,
+            interval: document.getElementById('interval').value,
+            department: document.getElementById('department').value,
+            startDate: document.getElementById('startDate').value,
+            endDate: document.getElementById('endDate').value,
+            teacher: document.getElementById('teacher').value,
+            headTeacher: document.getElementById('headTeacher').value,
+            headDept: document.getElementById('headDept').value,
+            criteria: criteriaData
+        };
+
+        try {
+            // ยิงข้อมูลไป Google Sheets
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+            
+            if(result.status === 'success') {
+                alert("✅ บันทึกการตั้งค่ารายวิชาสำเร็จ!");
+                location.reload(); // <--- คำสั่งนี้แหละครับที่จะรีเฟรชหน้าให้เคลียร์ข้อมูล
+            } else {
+                alert("❌ เกิดข้อผิดพลาด: " + result.message);
+                btn.innerText = "💾 บันทึกการตั้งค่ารายวิชานี้";
+                btn.disabled = false;
+            }
+        } catch (error) {
+            alert("❌ ไม่สามารถเชื่อมต่อกับระบบได้ กรุณาตรวจสอบ URL");
+            btn.innerText = "💾 บันทึกการตั้งค่ารายวิชานี้";
+            btn.disabled = false;
         }
     }
-
-    // 4. ฟังก์ชันลบ "หัวข้อย่อย"
-    function removeSubTopic(btn) {
-        btn.closest('.sub-row').remove();
-    }
-
-    // 5. ฟังก์ชัน (จำลอง) สำหรับกดบันทึกข้อมูล
-    function saveSetup() {
-        const btn = document.querySelector('.btn-save');
-        btn.innerText = "⏳ กำลังประมวลผล...";
-        
-        // ตรงนี้เดี๋ยวเราเอาไว้เขียนโค้ดส่งข้อมูลไป Google Sheets ครับ
-        setTimeout(() => {
-            alert("บันทึกข้อมูลโครงสร้างเรียบร้อยแล้ว!");
-            btn.innerText = "💾 บันทึกการตั้งค่ารายวิชานี้";
-        }, 1000);
-    }
 </script>
-
 </body>
 </html>
