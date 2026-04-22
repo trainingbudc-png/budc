@@ -1,70 +1,81 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบประเมินผลคะแนน</title>
+    <title>ระบบประเมินผลคะแนน (แยกหมวดหมู่)</title>
     <style>
-        body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; padding: 15px; }
-        .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; padding: 15px; margin: 0; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
         .step { display: none; } .active { display: block; }
-        label { display: block; margin-top: 10px; font-weight: bold; }
-        input, select { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 15px; }
+        label { display: block; margin-top: 10px; font-weight: bold; font-size: 14px; color: #333; }
+        input, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 15px; font-size: 15px; }
+        
         .btn-next { background: #1a73e8; color: white; }
         .btn-save { background: #28a745; color: white; }
-        .settings-panel { display: none; border: 1px solid #ccc; padding: 15px; border-radius: 10px; margin-bottom: 15px; background: #fff; }
-        .criteria-row { display: grid; grid-template-columns: 2fr 1fr 1fr 40px; gap: 5px; margin-bottom: 5px; }
+        .btn-add { background: #6c757d; color: white; padding: 8px; margin-top: 10px; }
+        
+        /* สไตล์หมวดหมู่ */
+        .settings-panel { display: none; border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 15px; background: #fafafa; }
+        .category-box { border: 2px dashed #b0bec5; padding: 10px; margin-top: 15px; border-radius: 8px; background: #fff; }
+        .category-header { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; background: #e3f2fd; padding: 10px; border-radius: 6px; }
+        .item-row { display: grid; grid-template-columns: 2fr 1fr 1fr 40px; gap: 5px; margin-bottom: 5px; }
+        
+        /* สไตล์ฟอร์มคะแนน */
+        .scoring-cat-box { border: 1px solid #e0e0e0; padding: 15px; margin-top: 15px; border-radius: 8px; background: #fdfdfd; }
+        .scoring-cat-title { font-size: 16px; font-weight: bold; color: #1565c0; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <h3 style="margin:0;">📝 ระบบบันทึกคะแนน</h3>
-        <span style="cursor:pointer; font-size:20px;" onclick="toggleSettings()">⚙️</span>
+        <h3 style="margin:0; color:#333;">📝 ระบบบันทึกคะแนน</h3>
+        <span style="cursor:pointer; font-size:22px;" onclick="toggleSettings()">⚙️</span>
     </div>
 
     <div id="settingsPanel" class="settings-panel">
-        <h4>ตั้งค่าเกณฑ์คะแนน</h4>
-        <label>เลือกวิชาที่จะตั้งเกณฑ์:</label>
+        <h4 style="margin-top:0;">ตั้งค่าหมวดหมู่และเกณฑ์</h4>
+        <label>เลือกวิชาที่จะตั้งค่า:</label>
         <select id="settingCourse" onchange="loadCriteriaForSetting()"></select>
         
-        <div id="criteriaList" style="margin-top:10px;">
-            <div class="criteria-row" style="font-size:11px; font-weight:bold;">
-                <div>ชื่อหัวข้อ</div><div>Max</div><div>MPL%</div><div></div>
-            </div>
-            </div>
-        <button onclick="addCriteriaRow()" style="background:#eee; color:#333; padding:5px;">+ เพิ่มหัวข้อ</button>
-        <button onclick="saveCriteriaToSheet()" class="btn-save">💾 บันทึกเกณฑ์คะแนน</button>
+        <div id="categoriesContainer"></div>
+        
+        <button onclick="addCategory()" class="btn-add">➕ เพิ่มหมวดหมู่ใหม่ (เช่น MEQ, MCQ)</button>
+        <button onclick="saveCriteriaToSheet()" class="btn-save" style="margin-top:20px;">💾 บันทึกเกณฑ์วิชานี้</button>
     </div>
 
     <div id="step1" class="step active">
-        <label>วิชา:</label>
+        <label>1. รายวิชา:</label>
         <select id="mainCourse" onchange="loadCriteriaForScoring()"></select>
-        <label>กลุ่มเรียน:</label>
-        <input type="text" id="group">
-        <label>รหัสนิสิต:</label>
-        <input type="number" id="studentId">
+        
+        <div style="display: flex; gap: 10px;">
+            <div style="flex:1;"><label>กลุ่ม:</label><input type="text" id="group" placeholder="เช่น 2(4)"></div>
+            <div style="flex:2;"><label>รหัสนิสิต:</label><input type="number" id="studentId" placeholder="กรอกรหัส"></div>
+        </div>
+        
         <label>ชื่อ-นามสกุล:</label>
         <input type="text" id="studentName">
+        
         <button class="btn-next" onclick="goStep2()">ถัดไป ➔</button>
     </div>
 
     <div id="step2" class="step">
         <label>ชื่ออาจารย์ผู้ประเมิน:</label>
-        <input type="text" id="evaluator">
-        <hr>
-        <div id="scoreInputsContainer"></div>
-        <button class="btn-save" id="submitBtn" onclick="submitFinalData()">💾 บันทึกคะแนน</button>
-        <button onclick="goStep1()" style="background:none; color:gray;">⬅ ย้อนกลับ</button>
+        <input type="text" id="evaluator" placeholder="ชื่อ-สกุล">
+        
+        <div id="scoringContainer"></div> <button class="btn-save" id="submitBtn" onclick="submitFinalData()">💾 บันทึกข้อมูลลงฐานข้อมูล</button>
+        <button onclick="goStep1()" style="background:none; color:#666; width:100%; padding:10px; border:none; cursor:pointer; font-weight:bold;">⬅ ย้อนกลับไปแก้ไขชื่อ</button>
     </div>
 </div>
 
 <script>
+    // 📍 เอา URL ใหม่ล่าสุดมาวางตรงนี้ครับ!
     const API_URL = "https://script.google.com/macros/s/AKfycbzq9lY014xqSuD0uxUSrXWEebatzwkxpRrZVwScTSAJVbAVeC0zc6jvxV7ytgjv4TNY/exec";
-    let currentCriteria = [];
+    
+    let criteriaState = []; // เก็บโครงสร้างเกณฑ์คะแนนชั่วคราว
 
     document.addEventListener("DOMContentLoaded", loadCourses);
 
@@ -83,66 +94,130 @@
         });
     }
 
-    // --- ระบบจัดการเกณฑ์คะแนน ---
-    function addCriteriaRow(label = '', max = 50, mpl = 35) {
+    // ==========================================
+    // ส่วนที่ 1: ระบบจัดการการตั้งค่า (Admin)
+    // ==========================================
+    function addCategory(catName = '', weight = 0) {
+        const catId = Date.now() + Math.floor(Math.random()*1000);
         const div = document.createElement('div');
-        div.className = 'criteria-row';
+        div.className = 'category-box';
+        div.id = `cat-${catId}`;
         div.innerHTML = `
-            <input type="text" class="c-label" value="${label}" placeholder="หัวข้อ">
-            <input type="number" class="c-max" value="${max}">
-            <input type="number" class="c-mpl" value="${mpl}">
-            <button onclick="this.parentElement.remove()" style="margin:0; background:red; color:white; padding:0;">✕</button>
+            <div class="category-header">
+                <input type="text" class="cat-name" placeholder="ชื่อหมวด (เช่น MEQ)" value="${catName}" style="flex:2; margin:0;">
+                <input type="number" class="cat-weight" placeholder="น้ำหนัก %" value="${weight}" style="flex:1; margin:0;">
+                <span style="font-weight:bold;">%</span>
+                <button onclick="document.getElementById('cat-${catId}').remove()" style="margin:0; background:none; color:red; width:auto; padding:5px;">🗑️</button>
+            </div>
+            <div class="item-row" style="font-size:12px; font-weight:bold; color:#555;">
+                <div>หัวข้อประเมิน</div><div>Max</div><div>MPL(%)</div><div></div>
+            </div>
+            <div class="items-container"></div>
+            <button onclick="addItem(this.previousElementSibling)" style="background:#eee; color:#333; padding:5px; font-size:12px; margin-top:5px;">+ เพิ่มข้อ</button>
         `;
-        document.getElementById('criteriaList').appendChild(div);
+        document.getElementById('categoriesContainer').appendChild(div);
+        return div.querySelector('.items-container'); // ส่ง container กลับไปให้เติม item
+    }
+
+    function addItem(container, label = '', max = 10, mpl = 60) {
+        const div = document.createElement('div');
+        div.className = 'item-row';
+        div.innerHTML = `
+            <input type="text" class="i-label" value="${label}" placeholder="เช่น ข้อ 1">
+            <input type="number" class="i-max" value="${max}">
+            <input type="number" class="i-mpl" value="${mpl}">
+            <button onclick="this.parentElement.remove()" style="margin:0; background:#ff4d4d; color:white; padding:0;">✕</button>
+        `;
+        container.appendChild(div);
     }
 
     async function loadCriteriaForSetting() {
         const course = document.getElementById('settingCourse').value;
+        document.getElementById('categoriesContainer').innerHTML = '';
         if(!course) return;
+        
         const res = await fetch(`${API_URL}?action=getCriteria&course=${encodeURIComponent(course)}`);
         const data = await res.json();
-        document.getElementById('criteriaList').innerHTML = '';
-        if(data.length > 0) data.forEach(c => addCriteriaRow(c.label, c.max, c.mpl));
-        else addCriteriaRow();
+        
+        // จัดกลุ่มข้อมูลที่ดึงมาจาก Sheet
+        const grouped = {};
+        data.forEach(d => {
+            if(!grouped[d.category]) grouped[d.category] = { weight: d.weight, items: [] };
+            grouped[d.category].items.push(d);
+        });
+
+        // สร้าง UI ตามกลุ่ม
+        for (const cat in grouped) {
+            const container = addCategory(cat, grouped[cat].weight);
+            grouped[cat].items.forEach(item => addItem(container, item.label, item.max, item.mpl));
+        }
     }
 
     async function saveCriteriaToSheet() {
         const course = document.getElementById('settingCourse').value;
-        const rows = document.querySelectorAll('.criteria-row');
+        if(!course) return alert('เลือกวิชาก่อนครับ');
+        
         const criteria = [];
-        rows.forEach((row, i) => {
-            if(i === 0) return; // skip header
-            criteria.push({
-                label: row.querySelector('.c-label').value,
-                max: row.querySelector('.c-max').value,
-                mpl: row.querySelector('.c-mpl').value
+        document.querySelectorAll('.category-box').forEach(catBox => {
+            const catName = catBox.querySelector('.cat-name').value;
+            const weight = catBox.querySelector('.cat-weight').value;
+            catBox.querySelectorAll('.item-row:not(:first-child)').forEach(itemRow => {
+                criteria.push({
+                    category: catName, weight: weight,
+                    label: itemRow.querySelector('.i-label').value,
+                    max: itemRow.querySelector('.i-max').value,
+                    mpl: itemRow.querySelector('.i-mpl').value
+                });
             });
         });
+
+        document.querySelector('#settingsPanel .btn-save').innerText = '⏳ กำลังบันทึก...';
         await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain' },
             body: JSON.stringify({ action: 'saveCriteria', course, criteria })
         });
         alert('บันทึกเกณฑ์เรียบร้อย!');
+        document.querySelector('#settingsPanel .btn-save').innerText = '💾 บันทึกเกณฑ์วิชานี้';
     }
 
-    // --- ระบบให้คะแนน ---
+    // ==========================================
+    // ส่วนที่ 2: ระบบให้คะแนน (User)
+    // ==========================================
     async function loadCriteriaForScoring() {
         const course = document.getElementById('mainCourse').value;
+        if(!course) return;
+        
         const res = await fetch(`${API_URL}?action=getCriteria&course=${encodeURIComponent(course)}`);
-        currentCriteria = await res.json();
-        const container = document.getElementById('scoreInputsContainer');
-        container.innerHTML = '';
-        currentCriteria.forEach((c, i) => {
-            container.innerHTML += `
-                <label>${c.label} (เต็ม ${c.max}, ผ่านที่ ${Math.round(c.max * c.mpl/100)})</label>
-                <input type="number" class="student-score" data-index="${i}" max="${c.max}" placeholder="ใส่คะแนน 0-${c.max}">
-            `;
+        criteriaState = await res.json();
+        
+        const grouped = {};
+        criteriaState.forEach((d, i) => {
+            d.originalIndex = i; // เก็บ index เพื่อใช้อ้างอิงตอนส่งกลับ
+            if(!grouped[d.category]) grouped[d.category] = { weight: d.weight, items: [] };
+            grouped[d.category].items.push(d);
         });
+
+        const container = document.getElementById('scoringContainer');
+        container.innerHTML = '';
+        
+        for (const cat in grouped) {
+            let html = `<div class="scoring-cat-box">
+                            <div class="scoring-cat-title">📁 หมวด: ${cat} (น้ำหนัก ${grouped[cat].weight}%)</div>`;
+            grouped[cat].items.forEach(c => {
+                const passScore = (c.max * c.mpl) / 100;
+                html += `<label>${c.label} <span style="color:#888; font-size:12px; font-weight:normal;">(เต็ม ${c.max} | ผ่าน ${passScore})</span></label>
+                         <input type="number" class="student-score" data-index="${c.originalIndex}" max="${c.max}" placeholder="ใส่คะแนน">`;
+            });
+            html += `</div>`;
+            container.innerHTML += html;
+        }
     }
 
     function goStep2() {
-        if(!currentCriteria.length) return alert('กรุณาเลือกวิชาที่มีการตั้งเกณฑ์ไว้แล้ว');
+        if(!document.getElementById('studentId').value || !document.getElementById('mainCourse').value) {
+            return alert('กรุณาเลือกวิชาและกรอกรหัสนิสิตให้ครบถ้วน');
+        }
         document.getElementById('step1').classList.remove('active');
         document.getElementById('step2').classList.add('active');
     }
@@ -155,12 +230,14 @@
     async function submitFinalData() {
         const btn = document.getElementById('submitBtn');
         const scores = [];
+        
         document.querySelectorAll('.student-score').forEach(input => {
             const idx = input.dataset.index;
             scores.push({
-                label: currentCriteria[idx].label,
-                max: currentCriteria[idx].max,
-                value: input.value
+                category: criteriaState[idx].category,
+                label: criteriaState[idx].label,
+                max: criteriaState[idx].max,
+                value: input.value || 0
             });
         });
 
@@ -174,10 +251,10 @@
             scores: scores
         };
 
-        btn.disabled = true; btn.innerText = "⏳ บันทึก...";
+        btn.disabled = true; btn.innerText = "⏳ กำลังบันทึกข้อมูล...";
         await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-        alert('บันทึกคะแนนเรียบร้อย!');
-        location.reload(); // รีเฟรชเริ่มใหม่
+        alert('บันทึกคะแนนเข้าระบบเรียบร้อย!');
+        location.reload(); 
     }
 </script>
 </body>
