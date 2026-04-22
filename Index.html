@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบประเมินผลคะแนน (รองรับหมวดย่อย)</title>
+    <title>ระบบประเมินผลคะแนน</title>
     <style>
         body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; padding: 15px; margin: 0; }
         .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
@@ -11,17 +11,18 @@
         .step { display: none; } .active { display: block; }
         label { display: block; margin-top: 10px; font-weight: bold; font-size: 14px; color: #333; }
         input, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
-        button { width: 100%; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 15px; font-size: 15px; }
+        button { width: 100%; padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
         
-        .btn-next { background: #1a73e8; color: white; }
-        .btn-save { background: #28a745; color: white; }
-        .btn-add { background: #6c757d; color: white; padding: 8px; margin-top: 10px; }
+        .btn-next { background: #1a73e8; color: white; margin-top: 15px; padding: 12px; }
+        .btn-save { background: #28a745; color: white; margin-top: 15px; padding: 12px; }
+        .btn-add-cat { background: #6c757d; color: white; margin-top: 15px; }
         
-        /* สไตล์หมวดหมู่ */
+        /* สไตล์หน้าตั้งค่า */
         .settings-panel { display: none; border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 15px; background: #fafafa; }
-        .category-box { border: 2px dashed #b0bec5; padding: 10px; margin-top: 15px; border-radius: 8px; background: #fff; }
+        .category-box { border: 2px dashed #b0bec5; padding: 12px; margin-top: 15px; border-radius: 8px; background: #fff; }
         .category-header { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; background: #e3f2fd; padding: 10px; border-radius: 6px; }
-        .item-row { display: grid; grid-template-columns: 2fr 1fr 1fr 40px; gap: 5px; margin-bottom: 5px; }
+        .item-row { display: grid; grid-template-columns: 2fr 1fr 1fr 40px; gap: 5px; margin-bottom: 5px; align-items: center; }
+        .divider-row { display: grid; grid-template-columns: 1fr 40px; gap: 5px; margin-bottom: 5px; align-items: center; }
         
         /* สไตล์ฟอร์มคะแนน */
         .scoring-cat-box { border: 1px solid #e0e0e0; padding: 15px; margin-top: 15px; border-radius: 8px; background: #fdfdfd; }
@@ -33,21 +34,18 @@
 <div class="container">
     <div class="header">
         <h3 style="margin:0; color:#333;">📝 ระบบบันทึกคะแนน</h3>
-        <span style="cursor:pointer; font-size:22px;" onclick="toggleSettings()">⚙️</span>
+        <span style="cursor:pointer; font-size:22px;" onclick="toggleSettings()" title="ตั้งค่าเกณฑ์">⚙️</span>
     </div>
 
     <div id="settingsPanel" class="settings-panel">
-        <h4 style="margin-top:0;">ตั้งค่าหมวดหมู่และเกณฑ์</h4>
-        <div style="background:#fff3cd; padding:10px; border-radius:6px; font-size:12px; margin-bottom:10px; border:1px solid #ffeeba; color:#856404;">
-            💡 <b>ทริค:</b> หากต้องการสร้าง "ข้อความคั่นหมวดย่อย" ให้พิมพ์ชื่อหมวดย่อย แล้วใส่ค่า Max = 0, MPL = 0
-        </div>
+        <h4 style="margin-top:0;">⚙️ ตั้งค่าหมวดหมู่และเกณฑ์</h4>
         <label>เลือกวิชาที่จะตั้งค่า:</label>
         <select id="settingCourse" onchange="loadCriteriaForSetting()"></select>
         
         <div id="categoriesContainer"></div>
         
-        <button onclick="addCategory()" class="btn-add">➕ เพิ่มหมวดหมู่ใหญ่ (เช่น MEQ)</button>
-        <button onclick="saveCriteriaToSheet()" class="btn-save" style="margin-top:20px;">💾 บันทึกเกณฑ์วิชานี้</button>
+        <button onclick="addCategory()" class="btn-add-cat">➕ เพิ่มหมวดใหญ่ (เช่น MEQ, MCQ)</button>
+        <button onclick="saveCriteriaToSheet()" class="btn-save">💾 บันทึกเกณฑ์วิชานี้</button>
     </div>
 
     <div id="step1" class="step active">
@@ -69,13 +67,15 @@
         <label>ชื่ออาจารย์ผู้ประเมิน:</label>
         <input type="text" id="evaluator" placeholder="ชื่อ-สกุล">
         
-        <div id="scoringContainer"></div> <button class="btn-save" id="submitBtn" onclick="submitFinalData()">💾 บันทึกข้อมูลลงฐานข้อมูล</button>
-        <button onclick="goStep1()" style="background:none; color:#666; width:100%; padding:10px; border:none; cursor:pointer; font-weight:bold;">⬅ ย้อนกลับไปแก้ไขข้อมูล</button>
+        <div id="scoringContainer"></div> 
+        
+        <button class="btn-save" id="submitBtn" onclick="submitFinalData()">💾 บันทึกคะแนนเข้าระบบ</button>
+        <button onclick="goStep1()" style="background:none; color:#666; width:100%; padding:10px; border:none; cursor:pointer; font-weight:bold;">⬅ ย้อนกลับ</button>
     </div>
 </div>
 
 <script>
-    // 📍 เอา URL ใหม่ล่าสุดมาวางตรงนี้ครับ!
+    // 📍 เอา URL ของคุณมาวางตรงนี้ครับ!
     const API_URL = "https://script.google.com/macros/s/AKfycbzq9lY014xqSuD0uxUSrXWEebatzwkxpRrZVwScTSAJVbAVeC0zc6jvxV7ytgjv4TNY/exec";
     
     let criteriaState = []; 
@@ -109,25 +109,44 @@
                 <span style="font-weight:bold;">%</span>
                 <button onclick="document.getElementById('cat-${catId}').remove()" style="margin:0; background:none; color:red; width:auto; padding:5px;">🗑️</button>
             </div>
-            <div class="item-row" style="font-size:12px; font-weight:bold; color:#555;">
-                <div>หัวข้อ / รายข้อ</div><div>Max</div><div>MPL(%)</div><div></div>
-            </div>
+            
             <div class="items-container"></div>
-            <button onclick="addItem(this.previousElementSibling)" style="background:#eee; color:#333; padding:5px; font-size:12px; margin-top:5px;">+ เพิ่มข้อ</button>
+            
+            <div style="display: flex; gap: 5px; margin-top: 10px; background: #f8f9fa; padding: 10px; border-radius: 6px;">
+                <button onclick="addItem(this.parentElement.previousElementSibling, false)" style="background:#007bff; color:white;">+ เพิ่มข้อสอบ (มีคะแนน)</button>
+                <button onclick="addItem(this.parentElement.previousElementSibling, true)" style="background:#6c757d; color:white;">+ เพิ่มป้ายคั่น</button>
+            </div>
         `;
         document.getElementById('categoriesContainer').appendChild(div);
         return div.querySelector('.items-container'); 
     }
 
-    function addItem(container, label = '', max = 10, mpl = 60) {
+    // ฟังก์ชันนี้ถูกปรับให้แยกแยะระหว่าง "ข้อสอบ" กับ "ป้ายคั่น" ชัดเจน
+    function addItem(container, isDivider = false, label = '', max = 10, mpl = 60) {
         const div = document.createElement('div');
-        div.className = 'item-row';
-        div.innerHTML = `
-            <input type="text" class="i-label" value="${label}" placeholder="เช่น ข้อ 1">
-            <input type="number" class="i-max" value="${max}" title="ใส่ 0 เพื่อทำเป็นตัวคั่นหมวดย่อย">
-            <input type="number" class="i-mpl" value="${mpl}">
-            <button onclick="this.parentElement.remove()" style="margin:0; background:#ff4d4d; color:white; padding:0;">✕</button>
-        `;
+        
+        if (isDivider || Number(max) === 0) {
+            // โหมด: ป้ายคั่น (ซ่อนช่อง Max/MPL)
+            div.className = 'divider-row';
+            div.innerHTML = `
+                <div style="display:flex; align-items:center; background:#e9ecef; border-radius:4px;">
+                    <span style="padding:0 10px; font-weight:bold; color:#555;">📍 ป้ายคั่น:</span>
+                    <input type="text" class="i-label" value="${label}" placeholder="เช่น ส่วนที่ 1 General" style="margin:0; border:none; background:transparent; flex:1; font-weight:bold;">
+                </div>
+                <input type="hidden" class="i-max" value="0">
+                <input type="hidden" class="i-mpl" value="0">
+                <button onclick="this.parentElement.remove()" style="margin:0; background:#ff4d4d; color:white; padding:10px 0;">✕</button>
+            `;
+        } else {
+            // โหมด: ข้อสอบปกติ (แสดงช่อง Max/MPL)
+            div.className = 'item-row';
+            div.innerHTML = `
+                <input type="text" class="i-label" value="${label}" placeholder="ชื่อข้อสอบ (เช่น ข้อ 1)">
+                <div><small style="color:#666;">เต็ม</small><input type="number" class="i-max" value="${max}" style="margin-top:0;"></div>
+                <div><small style="color:#666;">MPL%</small><input type="number" class="i-mpl" value="${mpl}" style="margin-top:0;"></div>
+                <button onclick="this.parentElement.remove()" style="margin:0; background:#ff4d4d; color:white; padding:10px 0; align-self:end;">✕</button>
+            `;
+        }
         container.appendChild(div);
     }
 
@@ -147,7 +166,8 @@
 
         for (const cat in grouped) {
             const container = addCategory(cat, grouped[cat].weight);
-            grouped[cat].items.forEach(item => addItem(container, item.label, item.max, item.mpl));
+            // โหลดข้อมูลเก่า: ถ้า Max เป็น 0 ให้วาดเป็น ป้ายคั่น (true)
+            grouped[cat].items.forEach(item => addItem(container, Number(item.max) === 0, item.label, item.max, item.mpl));
         }
     }
 
@@ -159,12 +179,15 @@
         document.querySelectorAll('.category-box').forEach(catBox => {
             const catName = catBox.querySelector('.cat-name').value;
             const weight = catBox.querySelector('.cat-weight').value;
-            catBox.querySelectorAll('.item-row:not(:first-child)').forEach(itemRow => {
+            
+            // ดึงทั้งข้อสอบและป้ายคั่น
+            catBox.querySelectorAll('.item-row, .divider-row').forEach(row => {
                 criteria.push({
-                    category: catName, weight: weight,
-                    label: itemRow.querySelector('.i-label').value,
-                    max: itemRow.querySelector('.i-max').value,
-                    mpl: itemRow.querySelector('.i-mpl').value
+                    category: catName, 
+                    weight: weight,
+                    label: row.querySelector('.i-label').value,
+                    max: row.querySelector('.i-max').value,
+                    mpl: row.querySelector('.i-mpl').value
                 });
             });
         });
@@ -201,19 +224,19 @@
         
         for (const cat in grouped) {
             let html = `<div class="scoring-cat-box">
-                            <div class="scoring-cat-title">📁 หมวดใหญ่: ${cat} (น้ำหนัก ${grouped[cat].weight}%)</div>`;
+                            <div class="scoring-cat-title">📁 หมวด: ${cat} (น้ำหนัก ${grouped[cat].weight}%)</div>`;
             
             grouped[cat].items.forEach(c => {
                 if (Number(c.max) === 0) {
-                    // 👉 ถ้า Max เป็น 0 = สร้างเป็นแถบ "ตัวคั่นหมวดย่อย" (ไม่มีช่องกรอกคะแนน)
-                    html += `<div style="font-weight:bold; color:#444; margin-top:20px; margin-bottom:5px; padding:8px; background:#e9ecef; border-radius:4px; font-size:15px;">
-                                📍 ${c.label}
+                    // แสดงเป็นป้ายคั่น
+                    html += `<div style="font-weight:bold; color:#444; margin-top:20px; margin-bottom:5px; padding:8px; background:#e9ecef; border-radius:4px; font-size:15px; border-left:4px solid #6c757d;">
+                                ${c.label}
                              </div>`;
                 } else {
-                    // 👉 ถ้า Max ไม่ใช่ 0 = สร้าง "ช่องกรอกคะแนนปกติ" (เยื้องเข้าไปนิดนึงให้ดูสวย)
+                    // แสดงเป็นช่องกรอกคะแนน
                     const passScore = (c.max * c.mpl) / 100;
-                    html += `<label style="margin-left:20px; display:block;">${c.label} <span style="color:#888; font-size:12px; font-weight:normal;">(เต็ม ${c.max} | ผ่าน ${passScore})</span></label>
-                             <input type="number" class="student-score" data-index="${c.originalIndex}" max="${c.max}" placeholder="ใส่คะแนน" style="margin-left:20px; width:calc(100% - 20px); margin-bottom:10px;">`;
+                    html += `<label style="margin-left:15px; display:block;">${c.label} <span style="color:#888; font-size:12px; font-weight:normal;">(เต็ม ${c.max} | ผ่าน ${passScore})</span></label>
+                             <input type="number" class="student-score" data-index="${c.originalIndex}" max="${c.max}" placeholder="ใส่คะแนน" style="margin-left:15px; width:calc(100% - 15px); margin-bottom:10px;">`;
                 }
             });
             html += `</div>`;
@@ -238,7 +261,6 @@
         const btn = document.getElementById('submitBtn');
         const scores = [];
         
-        // 📍 เก็บข้อมูลเฉพาะข้อที่มีช่องให้กรอก (ข้ามตัวคั่นหมวดย่อยไปเลย)
         document.querySelectorAll('.student-score').forEach(input => {
             const idx = input.dataset.index;
             scores.push({
