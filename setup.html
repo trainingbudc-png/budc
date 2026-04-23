@@ -110,9 +110,11 @@
     </div>
 
     <button class="btn-save" onclick="saveSetup()">💾 บันทึกการตั้งค่ารายวิชานี้</button>
-
-</div>
-
+        <hr style="margin-top: 40px;">
+    <h2>🗑️ จัดการรายวิชาที่มีอยู่ในระบบ</h2>
+    <div id="courseManagementList" style="background:#f9f9f9; padding:15px; border-radius:8px; border: 1px solid #ddd;">
+        ⏳ กำลังโหลดรายชื่อวิชา...
+    </div>
 <script>
     // 📍 เอา URL ใหม่จาก Google Apps Script มาวางตรงนี้นะครับ
     const API_URL = "https://script.google.com/macros/s/AKfycbzq9lY014xqSuD0uxUSrXWEebatzwkxpRrZVwScTSAJVbAVeC0zc6jvxV7ytgjv4TNY/exec";
@@ -233,6 +235,39 @@
             btn.disabled = false;
         }
     }
+// โหลดรายชื่อวิชามาแสดงเพื่อให้กดลบได้
+    async function loadCourseList() {
+        try {
+            const res = await fetch(`${API_URL}?action=getCourses`);
+            const courses = await res.json();
+            let html = "";
+            courses.forEach(c => {
+                html += `
+                    <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee; background:#fff; margin-bottom:5px; border-radius:4px;">
+                        <span style="font-weight:bold; color:#333;">${c}</span>
+                        <button onclick="deleteCourse('${c}')" style="color:white; background:#ff4d4d; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">ลบวิชานี้</button>
+                    </div>`;
+            });
+            document.getElementById('courseManagementList').innerHTML = html || "ยังไม่มีวิชาในระบบครับ";
+        } catch(e) {
+            document.getElementById('courseManagementList').innerHTML = "โหลดข้อมูลไม่สำเร็จ กรุณาเช็ค API_URL";
+        }
+    }
+
+    // ฟังก์ชันสั่งลบวิชา
+    async function deleteCourse(name) {
+        if(!confirm(`⚠️ ยืนยันการลบวิชา "${name}" ใช่ไหม?\n(ข้อมูลเกณฑ์คะแนนของวิชานี้จะถูกลบไปด้วยทั้งหมด)`)) return;
+        
+        await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'deleteCourse', courseName: name })
+        });
+        alert("✅ ลบวิชาเรียบร้อยแล้ว");
+        location.reload(); 
+    }
+
+    // ให้ดึงรายชื่อวิชามาแสดงตอนเปิดหน้าเว็บ
+    document.addEventListener("DOMContentLoaded", loadCourseList);
 </script>
 </body>
 </html>

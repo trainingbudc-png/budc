@@ -35,9 +35,7 @@
         <h2>หน้า 1: เลือกรายวิชา</h2>
         <label>รายวิชา:</label>
         <select id="course" onchange="updateSummary()">
-            <option value="">-- เลือกวิชา --</option>
-            <option value="ทฤษฎีทางศัลยศาสตร์ 1">ทฤษฎีทางศัลยศาสตร์ 1</option>
-            <option value="ศัลยศาสตร์ปฏิบัติ">ศัลยศาสตร์ปฏิบัติ</option>
+            <option value="">-- กำลังโหลดรายวิชา... --</option>
         </select>
         <button class="btn-next" onclick="nextStep(2)">ถัดไป</button>
     </div>
@@ -235,6 +233,20 @@
         alert('บันทึกข้อมูลเรียบร้อยแล้ว!');
         location.reload();
     }
+// โหลดรายชื่อวิชาขึ้นมาอัตโนมัติเมื่อเปิดหน้าเว็บ
+    window.onload = async function() {
+        try {
+            const res = await fetch(`${API_URL}?action=getCourses`);
+            const courses = await res.json();
+            const select = document.getElementById('course');
+            select.innerHTML = '<option value="">-- เลือกวิชา --</option>';
+            courses.forEach(course => {
+                select.innerHTML += `<option value="${course}">${course}</option>`;
+            });
+        } catch (e) {
+            console.error("โหลดวิชาไม่สำเร็จ:", e);
+        }
+    };
 </script>
 </body>
 </html>
