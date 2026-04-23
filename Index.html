@@ -169,33 +169,44 @@
         }
     }
 
-    // โหลดเกณฑ์มาจาก Sheet (เชื่อม รายวิชา -> เกณฑ์)
+   // โหลดเกณฑ์มาจาก Sheet (เชื่อม รายวิชา -> เกณฑ์) แบบมีตัวเช็ค Error
     async function loadCriteria() {
         const course = document.getElementById('course').value;
-        const res = await fetch(`${API_URL}?action=getCriteria&course=${encodeURIComponent(course)}`);
-        currentCriteria = await res.json();
-        
-        let html = "";
-        let weightHtml = "";
-        let seenCats = {};
+        if (!course) return; // ถ้ายังไม่เลือกวิชา ไม่ต้องโหลด
 
-        currentCriteria.forEach(c => {
-            // หน้า 4: แสดงหัวข้อหลัก/ย่อย
-            if(Number(c.max) === 0) {
-                html += `<div style="background:#eee; padding:5px; margin-top:10px; font-weight:bold;">📍 ${c.label}</div>`;
-            } else {
-                html += `<div style="padding-left:15px; border-bottom:1px solid #f0f0f0;">- ${c.label} (Max: ${c.max}, MPL: ${c.mpl}%)</div>`;
-            }
+        document.getElementById('criteriaList').innerHTML = "⏳ กำลังโหลดเกณฑ์คะแนน...";
 
-            // หน้า 5: แสดงน้ำหนักหมวด (%)
-            if(!seenCats[c.category]) {
-                weightHtml += `<div><b>หมวด ${c.category}:</b> น้ำหนัก ${c.weight}%</div>`;
-                seenCats[c.category] = true;
-            }
-        });
-        
-        document.getElementById('criteriaList').innerHTML = html || "ไม่พบเกณฑ์คะแนน";
-        document.getElementById('weightList').innerHTML = weightHtml || "ไม่พบข้อมูลน้ำหนักคะแนน";
+        try {
+            const res = await fetch(`${API_URL}?action=getCriteria&course=${encodeURIComponent(course)}`);
+            if (!res.ok) throw new Error('Network response was not ok');
+            currentCriteria = await res.json();
+            
+            let html = "";
+            let weightHtml = "";
+            let seenCats = {};
+
+            currentCriteria.forEach(c => {
+                // หน้า 4: แสดงหัวข้อหลัก/ย่อย
+                if(Number(c.max) === 0) {
+                    html += `<div style="background:#eee; padding:5px; margin-top:10px; font-weight:bold;">📍 ${c.label}</div>`;
+                } else {
+                    html += `<div style="padding-left:15px; border-bottom:1px solid #f0f0f0;">- ${c.label} (Max: ${c.max}, MPL: ${c.mpl}%)</div>`;
+                }
+
+                // หน้า 5: แสดงน้ำหนักหมวด (%)
+                if(!seenCats[c.category]) {
+                    weightHtml += `<div><b>หมวด ${c.category}:</b> น้ำหนัก ${c.weight}%</div>`;
+                    seenCats[c.category] = true;
+                }
+            });
+            
+            document.getElementById('criteriaList').innerHTML = html || "ไม่พบเกณฑ์คะแนนสำหรับวิชานี้ (ให้แอดมินไปตั้งค่าก่อน)";
+            document.getElementById('weightList').innerHTML = weightHtml || "ไม่พบข้อมูลน้ำหนักคะแนน";
+
+        } catch (error) {
+            console.error("Error:", error);
+            document.getElementById('criteriaList').innerHTML = `<span style="color:red; font-weight:bold;">❌ ไม่สามารถเชื่อมต่อฐานข้อมูลได้ กรุณาตรวจสอบ API_URL หรือการตั้งค่า Deploy ครับ<br>(${error.message})</span>`;
+        }
     }
 
     async function submitData() {
