@@ -1,80 +1,85 @@
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbyGJZSFcQXxIx4aIxi3rDaQULSE3Tm43tlVHiIyuMep07oK7REfYIAIVc18Fbbo5rRH/exec";
 
-// โหลดครั้งเดียวพอ
-document.addEventListener("DOMContentLoaded", () => {
+// โหลดหน้า
+document.addEventListener("DOMContentLoaded", function() {
     addCategory("MEQ");
     loadCourseList();
 });
 
-function addCategory(defaultName = "") {
-    const tbody = document.getElementById('criteriaBody');
-    const tr = document.createElement('tr');
-    
-    tr.innerHTML = `
-        <td>
-            <input type="text" class="cat-name" placeholder="ชื่อหมวด" value="${defaultName}">
-            <button class="btn-delete-cat" onclick="removeCategory(this)">🗑️ ลบหมวดนี้</button>
-        </td>
-        <td>
-            <div class="sub-container"></div>
-            <button class="btn-add-sub" onclick="addSubTopic(this)">+ เพิ่มหัวข้อย่อย</button>
-        </td>
-        <td>
-            <input type="number" class="cat-weight" placeholder="น้ำหนัก %">
-        </td>
-    `;
+// เพิ่มหมวด
+function addCategory(defaultName) {
+    defaultName = defaultName || "";
+
+    var tbody = document.getElementById('criteriaBody');
+    var tr = document.createElement('tr');
+
+    tr.innerHTML =
+        '<td>' +
+            '<input type="text" class="cat-name" value="' + defaultName + '">' +
+            '<button class="btn-delete-cat" onclick="removeCategory(this)">ลบ</button>' +
+        '</td>' +
+        '<td>' +
+            '<div class="sub-container"></div>' +
+            '<button class="btn-add-sub" onclick="addSubTopic(this)">+ เพิ่ม</button>' +
+        '</td>' +
+        '<td>' +
+            '<input type="number" class="cat-weight">' +
+        '</td>';
+
     tbody.appendChild(tr);
     addSubTopicDirectly(tr.querySelector('.sub-container'));
 }
 
+// เพิ่มหัวข้อย่อย
 function addSubTopic(btn) {
     addSubTopicDirectly(btn.previousElementSibling);
 }
 
 function addSubTopicDirectly(container) {
-    const div = document.createElement('div');
+    var div = document.createElement('div');
     div.className = 'sub-row';
-    div.innerHTML = `
-        <div class="col-name">
-            <input type="text" class="sub-name" placeholder="ชื่อหัวข้อย่อย">
-        </div>
-        <div class="col-score">
-            <input type="number" class="sub-max" placeholder="MAX">
-            <input type="number" class="sub-mpl" placeholder="MPL%">
-        </div>
-        <button class="btn-delete-sub" onclick="removeSubTopic(this)">✕</button>
-    `;
+
+    div.innerHTML =
+        '<input type="text" class="sub-name" placeholder="ชื่อ">' +
+        '<input type="number" class="sub-max" placeholder="MAX">' +
+        '<input type="number" class="sub-mpl" placeholder="MPL">' +
+        '<button onclick="removeSubTopic(this)">X</button>';
+
     container.appendChild(div);
 }
 
+// ลบ
 function removeCategory(btn) {
-    if(confirm("ลบหมวดนี้ใช่ไหม?")) btn.closest('tr').remove();
+    if(confirm("ลบหมวดนี้?")) {
+        btn.closest('tr').remove();
+    }
 }
 
 function removeSubTopic(btn) {
-    btn.closest('.sub-row').remove();
+    btn.parentElement.remove();
 }
 
-// ⭐ แก้หลัก ๆ อยู่ตรงนี้
+// ⭐ บันทึก
 async function saveSetup() {
-    const courseName = document.getElementById('courseName').value.trim();
-    if(!courseName) return alert("กรุณากรอกชื่อรายวิชา");
+    var courseName = document.getElementById('courseName').value.trim();
+    if(!courseName) {
+        alert("กรอกชื่อวิชา");
+        return;
+    }
 
-    const btn = document.querySelector('.btn-save');
-    btn.innerText = "⏳ กำลังบันทึก...";
+    var btn = document.querySelector('.btn-save');
+    btn.innerText = "กำลังบันทึก...";
     btn.disabled = true;
 
-    const criteriaData = [];
+    var criteriaData = [];
 
-    document.querySelectorAll('#criteriaBody tr').forEach(tr => {
-        const catName = tr.querySelector('.cat-name').value.trim();
-        const weight = Number(tr.querySelector('.cat-weight').value) || 0;
+    document.querySelectorAll('#criteriaBody tr').forEach(function(tr) {
+        var catName = tr.querySelector('.cat-name').value.trim();
+        var weight = Number(tr.querySelector('.cat-weight').value) || 0;
 
-        tr.querySelectorAll('.sub-row').forEach(sub => {
-            const subName = sub.querySelector('.sub-name').value.trim();
-
-            // กันค่าว่าง
+        tr.querySelectorAll('.sub-row').forEach(function(sub) {
+            var subName = sub.querySelector('.sub-name').value.trim();
             if(!subName) return;
 
             criteriaData.push({
@@ -87,8 +92,8 @@ async function saveSetup() {
         });
     });
 
-    const payload = {
-        action: 'saveSetup',
+    var payload = {
+        action: "saveSetup",
         courseName: courseName,
         courseGroup: document.getElementById('courseGroup').value,
         interval: Number(document.getElementById('interval').value) || 0,
@@ -102,66 +107,67 @@ async function saveSetup() {
     };
 
     try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
+        var res = await fetch(API_URL, {
+            method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify(payload)
         });
 
-        if (!response.ok) throw new Error("Server error");
+        if(!res.ok) throw new Error("server error");
 
-        const result = await response.json();
+        var result = await res.json();
 
-        if(result.status === 'success') {
-            alert("✅ บันทึกสำเร็จ");
+        if(result.status === "success") {
+            alert("บันทึกสำเร็จ");
             location.reload();
         } else {
-            alert("❌ " + result.message);
+            alert("error: " + result.message);
         }
 
-    } catch (error) {
-        alert("❌ เชื่อมต่อ API ไม่ได้");
+    } catch(e) {
+        alert("เชื่อมต่อ API ไม่ได้");
     }
 
-    btn.innerText = "💾 บันทึกการตั้งค่า";
+    btn.innerText = "บันทึก";
     btn.disabled = false;
 }
 
 // โหลดรายชื่อวิชา
 async function loadCourseList() {
     try {
-        const res = await fetch(`${API_URL}?action=getCourses`);
-        const courses = await res.json();
+        var res = await fetch(API_URL + "?action=getCourses");
+        var courses = await res.json();
 
-        let html = "";
-        courses.forEach(c => {
-            html += `
-                <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee;">
-                    <span>${c}</span>
-                    <button onclick="deleteCourse('${c}')">ลบ</button>
-                </div>`;
+        var html = "";
+
+        courses.forEach(function(c) {
+            html += '<div style="display:flex;justify-content:space-between;">' +
+                        '<span>' + c + '</span>' +
+                        '<button onclick="deleteCourse(\'' + c + '\')">ลบ</button>' +
+                    '</div>';
         });
 
         document.getElementById('courseManagementList').innerHTML =
-            html || "ยังไม่มีข้อมูล";
+            html || "ไม่มีข้อมูล";
 
-    } catch {
+    } catch(e) {
         document.getElementById('courseManagementList').innerHTML = "โหลดไม่ได้";
     }
 }
 
+// ลบวิชา
 async function deleteCourse(name) {
-    if(!confirm(`ลบ ${name} ใช่ไหม?`)) return;
+    if(!confirm("ลบ " + name + " ใช่ไหม?")) return;
 
     await fetch(API_URL, {
-        method: 'POST',
+        method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
         body: JSON.stringify({
-            action: 'deleteCourse',
+            action: "deleteCourse",
             courseName: name
         })
     });
