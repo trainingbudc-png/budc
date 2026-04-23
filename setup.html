@@ -1,273 +1,172 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>หน้าตั้งค่ารายวิชา (Admin)</title>
-    <style>
-        body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; padding: 20px; }
-        .container { max-width: 950px; margin: auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        h2 { border-left: 5px solid #1a73e8; padding-left: 10px; color: #333; margin-top: 30px; }
-        
-        /* สไตล์ฟอร์ม */
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .form-group label { font-weight: bold; display: block; margin-bottom: 5px; color: #444; }
-        input[type="text"], input[type="number"], input[type="date"], select {
-            width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;
-        }
-        
-        /* สไตล์ตารางตั้งค่าเกณฑ์ */
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 20px; }
-        th, td { border: 1px solid #ddd; padding: 12px; vertical-align: top; }
-        th { background: #e3f2fd; text-align: center; font-weight: bold; color: #1565c0; }
-        
-        /* จัด Layout หัวข้อย่อยให้ตรงกัน */
-        .sub-header { display: flex; gap: 10px; padding: 0 5px; }
-        .sub-row { display: flex; gap: 10px; margin-bottom: 8px; align-items: center; background: #fdfdfd; border: 1px dashed #eee; padding: 5px; border-radius: 5px; }
-        .col-name { flex: 1.5; }
-        .col-score { flex: 1; display: flex; gap: 5px; }
-        
-        /* ปุ่มต่างๆ */
-        .btn-add-cat { background: #1a73e8; color: white; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 20px; }
-        .btn-add-sub { background: #e0e0e0; color: #333; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
-        .btn-delete-cat { background: #ff4d4d; color: white; padding: 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; width: 100%; margin-top: 10px; }
-        .btn-delete-sub { background: none; color: #ff4d4d; border: none; cursor: pointer; font-size: 18px; padding: 0 5px; }
-        .btn-save { background: #28a745; color: white; padding: 15px; width: 100%; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; }
-        
-        button:hover { opacity: 0.8; }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <h2 style="margin-top: 0;">📋 ข้อมูลรายวิชา</h2>
-    <div class="form-grid">
-        <div class="form-group">
-            <label>รายวิชา:</label>
-            <input type="text" id="courseName" placeholder="เช่น ทฤษฎีทางศัลยศาสตร์ 1">
-        </div>
-        <div class="form-group">
-            <label>กลุ่ม:</label>
-            <input type="text" id="courseGroup" placeholder="เช่น 2(4)">
-        </div>
-    </div>
-
-    <h2>⚙️ ตั้งค่าเกณฑ์การประเมิน</h2>
-    <table>
-        <thead>
-            <tr>
-                <th width="22%">หมวดการประเมินหลัก</th>
-                <th width="63%">
-                    <div class="sub-header">
-                        <div class="col-name">หัวข้อย่อย</div>
-                        <div class="col-score">รายละเอียด (MAX / MPL%)</div>
-                        <div style="width: 25px;"></div>
-                    </div>
-                </th>
-                <th width="15%">% น้ำหนัก</th>
-            </tr>
-        </thead>
-        <tbody id="criteriaBody">
-            </tbody>
-    </table>
-    
-    <button class="btn-add-cat" onclick="addCategory()">➕ เพิ่มหมวดการประเมินหลัก</button>
-
-    <h2>📅 ตั้งค่ารายละเอียดอื่นๆ</h2>
-    <div class="form-grid">
-        <div class="form-group">
-            <label>อันตรรภาคชั้น (Interval):</label>
-            <input type="number" id="interval" step="0.1" value="3.5">
-        </div>
-        <div class="form-group">
-            <label>กลุ่มงาน:</label>
-            <input type="text" id="department" value="ศัลยกรรม">
-        </div>
-        <div class="form-group">
-            <label>วันที่เริ่ม:</label>
-            <input type="date" id="startDate">
-        </div>
-        <div class="form-group">
-            <label>วันที่สิ้นสุด:</label>
-            <input type="date" id="endDate">
-        </div>
-    </div>
-
-    <h2>👨‍🏫 รายนามอาจารย์</h2>
-    <div class="form-grid">
-        <div class="form-group">
-            <label>อาจารย์ผู้ประเมิน:</label>
-            <input type="text" id="teacher" placeholder="ชื่ออาจารย์">
-        </div>
-        <div class="form-group">
-            <label>อาจารย์รับผิดชอบรายวิชา:</label>
-            <input type="text" id="headTeacher" placeholder="ชื่ออาจารย์รับผิดชอบ">
-        </div>
-        <div class="form-group">
-            <label>หัวหน้ากลุ่มงาน:</label>
-            <input type="text" id="headDept" placeholder="ชื่อหัวหน้า">
-        </div>
-    </div>
-
-    <button class="btn-save" onclick="saveSetup()">💾 บันทึกการตั้งค่ารายวิชานี้</button>
-        <hr style="margin-top: 40px;">
-    <h2>🗑️ จัดการรายวิชาที่มีอยู่ในระบบ</h2>
-    <div id="courseManagementList" style="background:#f9f9f9; padding:15px; border-radius:8px; border: 1px solid #ddd;">
-        ⏳ กำลังโหลดรายชื่อวิชา...
-    </div>
 <script>
-    // 📍 เอา URL ใหม่จาก Google Apps Script มาวางตรงนี้นะครับ
-    const API_URL = "https://script.google.com/macros/s/AKfycbyGJZSFcQXxIx4aIxi3rDaQULSE3Tm43tlVHiIyuMep07oK7REfYIAIVc18Fbbo5rRH/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyGJZSFcQXxIx4aIxi3rDaQULSE3Tm43tlVHiIyuMep07oK7REfYIAIVc18Fbbo5rRH/exec";
 
-    document.addEventListener("DOMContentLoaded", () => {
-        addCategory("MEQ");
+// โหลดครั้งเดียวพอ
+document.addEventListener("DOMContentLoaded", () => {
+    addCategory("MEQ");
+    loadCourseList();
+});
+
+function addCategory(defaultName = "") {
+    const tbody = document.getElementById('criteriaBody');
+    const tr = document.createElement('tr');
+    
+    tr.innerHTML = `
+        <td>
+            <input type="text" class="cat-name" placeholder="ชื่อหมวด" value="${defaultName}">
+            <button class="btn-delete-cat" onclick="removeCategory(this)">🗑️ ลบหมวดนี้</button>
+        </td>
+        <td>
+            <div class="sub-container"></div>
+            <button class="btn-add-sub" onclick="addSubTopic(this)">+ เพิ่มหัวข้อย่อย</button>
+        </td>
+        <td>
+            <input type="number" class="cat-weight" placeholder="น้ำหนัก %">
+        </td>
+    `;
+    tbody.appendChild(tr);
+    addSubTopicDirectly(tr.querySelector('.sub-container'));
+}
+
+function addSubTopic(btn) {
+    addSubTopicDirectly(btn.previousElementSibling);
+}
+
+function addSubTopicDirectly(container) {
+    const div = document.createElement('div');
+    div.className = 'sub-row';
+    div.innerHTML = `
+        <div class="col-name">
+            <input type="text" class="sub-name" placeholder="ชื่อหัวข้อย่อย">
+        </div>
+        <div class="col-score">
+            <input type="number" class="sub-max" placeholder="MAX">
+            <input type="number" class="sub-mpl" placeholder="MPL%">
+        </div>
+        <button class="btn-delete-sub" onclick="removeSubTopic(this)">✕</button>
+    `;
+    container.appendChild(div);
+}
+
+function removeCategory(btn) {
+    if(confirm("ลบหมวดนี้ใช่ไหม?")) btn.closest('tr').remove();
+}
+
+function removeSubTopic(btn) {
+    btn.closest('.sub-row').remove();
+}
+
+// ⭐ แก้หลัก ๆ อยู่ตรงนี้
+async function saveSetup() {
+    const courseName = document.getElementById('courseName').value.trim();
+    if(!courseName) return alert("กรุณากรอกชื่อรายวิชา");
+
+    const btn = document.querySelector('.btn-save');
+    btn.innerText = "⏳ กำลังบันทึก...";
+    btn.disabled = true;
+
+    const criteriaData = [];
+
+    document.querySelectorAll('#criteriaBody tr').forEach(tr => {
+        const catName = tr.querySelector('.cat-name').value.trim();
+        const weight = Number(tr.querySelector('.cat-weight').value) || 0;
+
+        tr.querySelectorAll('.sub-row').forEach(sub => {
+            const subName = sub.querySelector('.sub-name').value.trim();
+
+            // กันค่าว่าง
+            if(!subName) return;
+
+            criteriaData.push({
+                category: catName,
+                weight: weight,
+                subName: subName,
+                max: Number(sub.querySelector('.sub-max').value) || 0,
+                mpl: Number(sub.querySelector('.sub-mpl').value) || 0
+            });
+        });
     });
 
-    function addCategory(defaultName = "") {
-        const tbody = document.getElementById('criteriaBody');
-        const tr = document.createElement('tr');
-        
-        tr.innerHTML = `
-            <td>
-                <input type="text" class="cat-name" placeholder="ชื่อหมวด (เช่น MEQ)" value="${defaultName}">
-                <button class="btn-delete-cat" onclick="removeCategory(this)">🗑️ ลบหมวดนี้</button>
-            </td>
-            <td>
-                <div class="sub-container"></div>
-                <button class="btn-add-sub" onclick="addSubTopic(this)">+ เพิ่มหัวข้อย่อย</button>
-            </td>
-            <td>
-                <input type="number" class="cat-weight" placeholder="น้ำหนัก %">
-            </td>
-        `;
-        tbody.appendChild(tr);
-        addSubTopicDirectly(tr.querySelector('.sub-container'));
-    }
+    const payload = {
+        action: 'saveSetup',
+        courseName: courseName,
+        courseGroup: document.getElementById('courseGroup').value,
+        interval: Number(document.getElementById('interval').value) || 0,
+        department: document.getElementById('department').value,
+        startDate: document.getElementById('startDate').value,
+        endDate: document.getElementById('endDate').value,
+        teacher: document.getElementById('teacher').value,
+        headTeacher: document.getElementById('headTeacher').value,
+        headDept: document.getElementById('headDept').value,
+        criteria: criteriaData
+    };
 
-    function addSubTopic(btn) {
-        addSubTopicDirectly(btn.previousElementSibling);
-    }
-
-    function addSubTopicDirectly(container) {
-        const div = document.createElement('div');
-        div.className = 'sub-row';
-        div.innerHTML = `
-            <div class="col-name">
-                <input type="text" class="sub-name" placeholder="ชื่อหัวข้อย่อย (เช่น 1 Gen 1)">
-            </div>
-            <div class="col-score">
-                <input type="number" class="sub-max" placeholder="MAX">
-                <input type="number" class="sub-mpl" placeholder="MPL%">
-            </div>
-            <button class="btn-delete-sub" title="ลบหัวข้อนี้" onclick="removeSubTopic(this)">✕</button>
-        `;
-        container.appendChild(div);
-    }
-
-    function removeCategory(btn) {
-        if(confirm("แน่ใจหรือไม่ว่าต้องการลบหมวดนี้และหัวข้อย่อยทั้งหมด?")) btn.closest('tr').remove();
-    }
-
-    function removeSubTopic(btn) { btn.closest('.sub-row').remove(); }
-
-    // 🌟 ฟังก์ชันบันทึกข้อมูลของจริง (ส่งไป Google Sheets)
-    async function saveSetup() {
-        const courseName = document.getElementById('courseName').value;
-        const courseGroup = document.getElementById('courseGroup').value;
-        
-        if(!courseName) return alert("กรุณากรอกชื่อรายวิชาก่อนบันทึกครับ");
-
-        const btn = document.querySelector('.btn-save');
-        btn.innerText = "⏳ กำลังส่งข้อมูลไปยังฐานข้อมูล...";
-        btn.disabled = true;
-
-        // ดึงข้อมูลเกณฑ์การประเมินจากตาราง
-        const criteriaData = [];
-        document.querySelectorAll('#criteriaBody tr').forEach(tr => {
-            const catName = tr.querySelector('.cat-name').value;
-            const weight = tr.querySelector('.cat-weight').value;
-            
-            tr.querySelectorAll('.sub-row').forEach(sub => {
-                criteriaData.push({
-                    category: catName,
-                    weight: weight,
-                    subName: sub.querySelector('.sub-name').value,
-                    max: sub.querySelector('.sub-max').value,
-                    mpl: sub.querySelector('.sub-mpl').value
-                });
-            });
-        });
-
-        // จัดเตรียมชุดข้อมูลทั้งหมด
-        const payload = {
-            action: 'saveSetup',
-            courseName: courseName,
-            courseGroup: courseGroup,
-            interval: document.getElementById('interval').value,
-            department: document.getElementById('department').value,
-            startDate: document.getElementById('startDate').value,
-            endDate: document.getElementById('endDate').value,
-            teacher: document.getElementById('teacher').value,
-            headTeacher: document.getElementById('headTeacher').value,
-            headDept: document.getElementById('headDept').value,
-            criteria: criteriaData
-        };
-
-        try {
-            // ยิงข้อมูลไป Google Sheets
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            });
-            const result = await response.json();
-            
-            if(result.status === 'success') {
-                alert("✅ บันทึกการตั้งค่ารายวิชาสำเร็จ!");
-                location.reload(); // <--- คำสั่งนี้แหละครับที่จะรีเฟรชหน้าให้เคลียร์ข้อมูล
-            } else {
-                alert("❌ เกิดข้อผิดพลาด: " + result.message);
-                btn.innerText = "💾 บันทึกการตั้งค่ารายวิชานี้";
-                btn.disabled = false;
-            }
-        } catch (error) {
-            alert("❌ ไม่สามารถเชื่อมต่อกับระบบได้ กรุณาตรวจสอบ URL");
-            btn.innerText = "💾 บันทึกการตั้งค่ารายวิชานี้";
-            btn.disabled = false;
-        }
-    }
-// โหลดรายชื่อวิชามาแสดงเพื่อให้กดลบได้
-    async function loadCourseList() {
-        try {
-            const res = await fetch(`${API_URL}?action=getCourses`);
-            const courses = await res.json();
-            let html = "";
-            courses.forEach(c => {
-                html += `
-                    <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee; background:#fff; margin-bottom:5px; border-radius:4px;">
-                        <span style="font-weight:bold; color:#333;">${c}</span>
-                        <button onclick="deleteCourse('${c}')" style="color:white; background:#ff4d4d; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">ลบวิชานี้</button>
-                    </div>`;
-            });
-            document.getElementById('courseManagementList').innerHTML = html || "ยังไม่มีวิชาในระบบครับ";
-        } catch(e) {
-            document.getElementById('courseManagementList').innerHTML = "โหลดข้อมูลไม่สำเร็จ กรุณาเช็ค API_URL";
-        }
-    }
-
-    // ฟังก์ชันสั่งลบวิชา
-    async function deleteCourse(name) {
-        if(!confirm(`⚠️ ยืนยันการลบวิชา "${name}" ใช่ไหม?\n(ข้อมูลเกณฑ์คะแนนของวิชานี้จะถูกลบไปด้วยทั้งหมด)`)) return;
-        
-        await fetch(API_URL, {
+    try {
+        const response = await fetch(API_URL, {
             method: 'POST',
-            body: JSON.stringify({ action: 'deleteCourse', courseName: name })
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
         });
-        alert("✅ ลบวิชาเรียบร้อยแล้ว");
-        location.reload(); 
+
+        if (!response.ok) throw new Error("Server error");
+
+        const result = await response.json();
+
+        if(result.status === 'success') {
+            alert("✅ บันทึกสำเร็จ");
+            location.reload();
+        } else {
+            alert("❌ " + result.message);
+        }
+
+    } catch (error) {
+        alert("❌ เชื่อมต่อ API ไม่ได้");
     }
 
-    // ให้ดึงรายชื่อวิชามาแสดงตอนเปิดหน้าเว็บ
-    document.addEventListener("DOMContentLoaded", loadCourseList);
+    btn.innerText = "💾 บันทึกการตั้งค่า";
+    btn.disabled = false;
+}
+
+// โหลดรายชื่อวิชา
+async function loadCourseList() {
+    try {
+        const res = await fetch(`${API_URL}?action=getCourses`);
+        const courses = await res.json();
+
+        let html = "";
+        courses.forEach(c => {
+            html += `
+                <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee;">
+                    <span>${c}</span>
+                    <button onclick="deleteCourse('${c}')">ลบ</button>
+                </div>`;
+        });
+
+        document.getElementById('courseManagementList').innerHTML =
+            html || "ยังไม่มีข้อมูล";
+
+    } catch {
+        document.getElementById('courseManagementList').innerHTML = "โหลดไม่ได้";
+    }
+}
+
+async function deleteCourse(name) {
+    if(!confirm(`ลบ ${name} ใช่ไหม?`)) return;
+
+    await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            action: 'deleteCourse',
+            courseName: name
+        })
+    });
+
+    alert("ลบแล้ว");
+    location.reload();
+}
 </script>
-</body>
-</html>
