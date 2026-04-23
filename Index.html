@@ -10,7 +10,6 @@
         .step { display: none; } 
         .step.active { display: block; }
         
-        /* สไตล์ส่วนหัวของแต่ละหน้า */
         .info-header { background: #e3f2fd; padding: 10px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; color: #1565c0; line-height: 1.6; }
         
         h2 { color: #333; font-size: 1.2rem; margin-bottom: 20px; border-left: 5px solid #1a73e8; padding-left: 10px; }
@@ -23,8 +22,10 @@
         .btn-prev { background: #eee; color: #666; }
         .btn-save { background: #28a745; color: white; }
         
-        /* สไตล์ตาราง/รายการในหน้าท้ายๆ */
         .preview-box { border: 1px solid #eee; padding: 10px; border-radius: 8px; background: #fafafa; margin-bottom: 10px; font-size: 14px; }
+        .score-row { padding: 10px; border-bottom: 1px solid #eee; display: flex; flex-direction: column; }
+        .score-row label { font-size: 14px; margin-bottom: 5px; }
+        .score-input { margin-bottom: 5px !important; }
     </style>
 </head>
 <body>
@@ -66,7 +67,7 @@
 
     <div id="step4" class="step">
         <div id="info4" class="info-header"></div>
-        <h2>หน้า 4: เกณฑ์คะแนนรายข้อ</h2>
+        <h2>หน้า 4: กรอกคะแนนรายข้อ</h2>
         <div id="criteriaList" class="preview-box">
             กำลังโหลดเกณฑ์คะแนน...
         </div>
@@ -130,14 +131,13 @@
 </div>
 
 <script>
+    // ใช้ API_URL ล่าสุดที่คุณ Deploy
     const API_URL = "https://script.google.com/macros/s/AKfycbyGJZSFcQXxIx4aIxi3rDaQULSE3Tm43tlVHiIyuMep07oK7REfYIAIVc18Fbbo5rRH/exec";
     let currentCriteria = [];
 
-    // ฟังก์ชันเปลี่ยนหน้า
     function nextStep(step) {
-        // เช็คความเรียบร้อยก่อนไปหน้าถัดไป (ตัวอย่าง)
         if(step === 2 && !document.getElementById('course').value) return alert('กรุณาเลือกวิชา');
-        if(step === 4) loadCriteria(); // โหลดเกณฑ์มาโชว์ในหน้า 4
+        if(step === 4) loadCriteria(); 
         
         document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
         document.getElementById('step' + step).classList.add('active');
@@ -149,7 +149,6 @@
         document.getElementById('step' + step).classList.add('active');
     }
 
-    // อัปเดตแถบข้อมูลด้านบนในทุกๆ หน้า เพื่อเชื่อมโยงข้อมูล
     function updateSummary() {
         const course = document.getElementById('course').value;
         const group = document.getElementById('group').value;
@@ -167,17 +166,14 @@
         }
     }
 
-   // โหลดข้อมูลทุกอย่างมาจาก Sheet เมื่อเลือกวิชา
     async function loadCriteria() {
         const course = document.getElementById('course').value;
-        if (!course) return; // ถ้ายังไม่เลือกวิชา ไม่ต้องโหลด
+        if (!course) return;
 
-        document.getElementById('criteriaList').innerHTML = "⏳ กำลังโหลดข้อมูลวิชา...";
+        document.getElementById('criteriaList').innerHTML = "⏳ กำลังโหลดเกณฑ์คะแนน...";
 
         try {
-            // --- 1. โหลดเกณฑ์คะแนน (เพื่อแสดงในหน้า 4, 5) ---
             const res = await fetch(`${API_URL}?action=getCriteria&course=${encodeURIComponent(course)}`);
-            if (!res.ok) throw new Error('Network response was not ok');
             currentCriteria = await res.json();
             
             let html = "";
@@ -186,9 +182,13 @@
 
             currentCriteria.forEach(c => {
                 if(Number(c.max) === 0) {
-                    html += `<div style="background:#eee; padding:5px; margin-top:10px; font-weight:bold;">📍 ${c.label}</div>`;
+                    html += `<div style="background:#eee; padding:5px; margin-top:10px; font-weight:bold; border-radius:4px;">📍 ${c.label}</div>`;
                 } else {
-                    html += `<div style="padding-left:15px; border-bottom:1px solid #f0f0f0;">- ${c.label} (Max: ${c.max}, MPL: ${c.mpl}%)</div>`;
+                    // 🌟 เพิ่มช่อง Input ให้กรอกคะแนนได้
+                    html += `<div class="score-row">
+                                <label>- ${c.label} (เต็ม ${c.max})</label>
+                                <input type="number" class="score-input" data-topic="${c.label}" max="${c.max}" placeholder="ใส่คะแนนที่ได้">
+                             </div>`;
                 }
                 if(!seenCats[c.category]) {
                     weightHtml += `<div><b>หมวด ${c.category}:</b> น้ำหนัก ${c.weight}%</div>`;
@@ -196,10 +196,10 @@
                 }
             });
             
-            document.getElementById('criteriaList').innerHTML = html || "ไม่พบเกณฑ์คะแนนสำหรับวิชานี้";
-            document.getElementById('weightList').innerHTML = weightHtml || "ไม่พบข้อมูลน้ำหนักคะแนน";
+            document.getElementById('criteriaList').innerHTML = html || "ไม่พบเกณฑ์คะแนน";
+            document.getElementById('weightList').innerHTML = weightHtml || "ไม่พบน้ำหนักคะแนน";
 
-            // --- 🌟 2. โหลดข้อมูลอื่นๆ มาเติมอัตโนมัติ (หน้า 6, 7, 8) ---
+            // โหลดข้อมูล Course Info อัตโนมัติ
             const infoRes = await fetch(`${API_URL}?action=getCourseInfo&course=${encodeURIComponent(course)}`);
             if (infoRes.ok) {
                 const info = await infoRes.json();
@@ -211,49 +211,57 @@
             }
 
         } catch (error) {
-            console.error("Error:", error);
-            document.getElementById('criteriaList').innerHTML = `<span style="color:red;">❌ ไม่สามารถเชื่อมต่อฐานข้อมูลได้</span>`;
+            document.getElementById('criteriaList').innerHTML = "❌ โหลดข้อมูลผิดพลาด";
         }
     }
 
     async function submitData() {
         const btn = document.querySelector('.btn-save');
+        const course = document.getElementById('course').value;
+        const studentId = document.getElementById('studentId').value;
+
+        if(!course || !studentId) return alert("กรุณากรอกข้อมูลนิสิตให้ครบถ้วน");
+
         btn.disabled = true;
         btn.innerText = "⏳ กำลังบันทึก...";
         
-        // รวบรวมข้อมูลทั้งหมดส่งไปบันทึก
+        // 🌟 รวบรวมคะแนนรายข้อ
+        let scoresData = {};
+        document.querySelectorAll('.score-input').forEach(input => {
+            scoresData[input.getAttribute('data-topic')] = input.value || "0";
+        });
+
         const payload = {
-            action: 'saveData',
-            course: document.getElementById('course').value,
+            action: 'saveScore', // ให้ตรงกับ Code.gs
+            course: course,
             group: document.getElementById('group').value,
-            studentId: document.getElementById('studentId').value,
+            studentId: studentId,
             studentName: document.getElementById('studentName').value,
-            interval: document.getElementById('interval').value,
-            startDate: document.getElementById('startDate').value,
-            endDate: document.getElementById('endDate').value,
-            dept: document.getElementById('dept').value,
-            teacher: document.getElementById('teacher').value
+            scores: scoresData
         };
 
-        // ในขั้นตอนสุดท้าย คุณจะส่งคะแนนรายข้อไปด้วย (Logic เดียวกับเวอร์ชันก่อน)
-        // ... (เพิ่มการเก็บคะแนนจาก Input ในหน้า 4 หรือเพิ่มช่องกรอกในหน้าสุดท้าย)
-
-        await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-        alert('บันทึกข้อมูลเรียบร้อยแล้ว!');
-        location.reload();
+        try {
+            await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+            alert('✅ บันทึกคะแนนเรียบร้อยแล้ว!');
+            location.reload();
+        } catch (e) {
+            alert('❌ บันทึกไม่สำเร็จ');
+            btn.disabled = false;
+            btn.innerText = "💾 บันทึกคะแนน";
+        }
     }
-// โหลดรายชื่อวิชาขึ้นมาอัตโนมัติเมื่อเปิดหน้าเว็บ
+
     window.onload = async function() {
         try {
             const res = await fetch(`${API_URL}?action=getCourses`);
             const courses = await res.json();
             const select = document.getElementById('course');
             select.innerHTML = '<option value="">-- เลือกวิชา --</option>';
-            courses.forEach(course => {
-                select.innerHTML += `<option value="${course}">${course}</option>`;
+            courses.forEach(c => {
+                select.innerHTML += `<option value="${c}">${c}</option>`;
             });
         } catch (e) {
-            console.error("โหลดวิชาไม่สำเร็จ:", e);
+            console.error("โหลดวิชาไม่สำเร็จ");
         }
     };
 </script>
