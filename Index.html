@@ -187,7 +187,8 @@
                     // 🌟 เพิ่มช่อง Input ให้กรอกคะแนนได้
                     html += `<div class="score-row">
                                 <label>- ${c.label} (เต็ม ${c.max})</label>
-                                <input type="number" class="score-input" data-topic="${c.label}" max="${c.max}" placeholder="ใส่คะแนนที่ได้">
+                                // <input type="number" class="score-input" data-topic="${c.label}" max="${c.max}" placeholder="ใส่คะแนนที่ได้">
+				<input type="number" class="score-input" data-topic="${c.category}_${c.label}" max="${c.max}" placeholder="ใส่คะแนนที่ได้">
                              </div>`;
                 }
                 if(!seenCats[c.category]) {
