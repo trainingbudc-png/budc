@@ -266,6 +266,32 @@
             console.error("โหลดวิชาไม่สำเร็จ");
         }
     };
+<div style="text-align: center; margin-top: 20px;">
+  <button id="pdfBtn" onclick="exportPDF()" style="padding: 10px 20px; background-color: #d9534f; color: white; border: none; border-radius: 5px; cursor: pointer;">
+    📥 ดาวน์โหลดรายงานสรุป (PDF)
+  </button>
+  <p id="statusMsg" style="margin-top: 10px; color: blue;"></p>
+</div>
+
+<script>
+function exportPDF() {
+  const btn = document.getElementById('pdfBtn');
+  const msg = document.getElementById('statusMsg');
+  
+  btn.disabled = true;
+  msg.innerText = "กำลังสร้างไฟล์ PDF กรุณารอสักครู่...";
+  
+  google.script.run
+    .withSuccessHandler(function(url) {
+      msg.innerHTML = '<a href="' + url + '" target="_blank">✅ สร้างเสร็จแล้ว! คลิกเพื่อดาวน์โหลด PDF</a>';
+      btn.disabled = false;
+    })
+    .withFailureHandler(function(err) {
+      msg.innerText = "เกิดข้อผิดพลาด: " + err;
+      btn.disabled = false;
+    })
+    .generatePDF(); // ชื่อฟังก์ชันใน Code.gs
+}
 </script>
 </body>
 </html>
