@@ -128,13 +128,6 @@
         </div>
     </div>
 
-    <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-        <button id="pdfBtn" onclick="exportPDF()" style="padding: 10px 20px; background-color: #d9534f; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
-            📥 ดาวน์โหลดรายงานสรุป (PDF)
-        </button>
-        <p id="statusMsg" style="margin-top: 10px; color: blue; font-size: 14px;"></p>
-    </div>
-
 </div>
 
 <script>
@@ -245,7 +238,6 @@
         };
 
         try {
-            // เพิ่ม header text/plain เพื่อกันติด CORS บน Github
             await fetch(API_URL, { 
                 method: 'POST', 
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -274,24 +266,6 @@
             console.error("โหลดวิชาไม่สำเร็จ");
         }
     };
-
-    // ฟังก์ชัน Export PDF (ปรับให้เปิดหน้าต่างใหม่ส่งให้ Apps Script)
-    function exportPDF() {
-        const btn = document.getElementById('pdfBtn');
-        const msg = document.getElementById('statusMsg');
-        
-        btn.disabled = true;
-        msg.innerText = "กำลังส่งคำสั่งไปสร้าง PDF กรุณารอสักครู่...";
-
-        // สั่งเปิดแท็บใหม่ โดยส่งพารามิเตอร์ action=exportPDF ไปที่ Code.gs
-        const exportUrl = API_URL + "?action=exportPDF";
-        window.open(exportUrl, '_blank');
-        
-        setTimeout(() => {
-            msg.innerText = "✅ ระบบเปิดหน้าต่างใหม่ให้แล้ว (ถ้าไม่ขึ้นให้เช็คว่าเบราว์เซอร์บล็อก Pop-up หรือไม่)";
-            btn.disabled = false;
-        }, 3000);
-    }
 </script>
 
 </body>
