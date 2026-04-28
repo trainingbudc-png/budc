@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบบันทึกคะแนน - ประวัติและแก้ไข</title>
+    <title>ระบบบันทึกคะแนน</title>
     <style>
         body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; margin: 0; padding: 15px; }
         .container { max-width: 600px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
@@ -17,21 +17,10 @@
         .btn-next { background: #1a73e8; color: white; }
         .btn-prev { background: #666; color: white; }
         .btn-save { background: #28a745; color: white; width: 100%; margin-top: 10px; }
-        
-        /* สไตล์ปุ่มและตารางประวัติ */
-        .btn-history { background: #ff9800; color: white; width: 100%; margin-top: 15px; }
-        .history-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
-        .history-table th, .history-table td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        .history-table th { background: #f8f9fa; }
-        .btn-edit { background: #ffc107; color: black; padding: 6px 12px; font-size: 12px; border-radius: 4px; cursor: pointer; border: none; font-weight: bold; }
-        .status-tag { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 13px; background: #e8f0fe; color: #1a73e8; margin-bottom: 15px; font-weight: bold; }
     </style>
 </head>
 <body>
-
 <div class="container">
-    <div id="editModeTag" style="display:none;" class="status-tag">✏️ กำลังอยู่ในโหมดแก้ไขแถวที่: <span id="displayRowId"></span></div>
-
     <div id="step1" class="step active">
         <h2>1. ข้อมูลรายวิชา</h2>
         <label>รายวิชา:</label>
@@ -40,25 +29,17 @@
         <input type="text" id="group" placeholder="เช่น 1 หรือ 2(4)">
         <button class="btn-next" onclick="nextStep(2)">ถัดไป</button>
     </div>
-
     <div id="step2" class="step">
         <h2>2. ข้อมูลนิสิต</h2>
         <label>รหัสนิสิต:</label>
         <input type="number" id="studentId" placeholder="64xxxxxx">
         <label>ชื่อ-นามสกุล:</label>
         <input type="text" id="studentName" placeholder="ชื่อ-นามสกุล">
-        
         <div class="btn-group">
             <button class="btn-prev" onclick="prevStep(1)">ย้อนกลับ</button>
             <button class="btn-next" onclick="nextStep(3)">ถัดไป</button>
         </div>
-
-        <hr style="margin: 25px 0; border: 0; border-top: 1px dashed #ccc;">
-        
-        <button class="btn-history" onclick="loadHistory()">📜 ดูประวัติเพื่อดึงข้อมูล/แก้ไข</button>
-        <div id="historyContainer" style="overflow-x:auto;"></div>
     </div>
-
     <div id="step3" class="step">
         <h2>3. บันทึกคะแนน</h2>
         <div id="criteriaList">กำลังโหลดเกณฑ์คะแนน...</div>
@@ -68,157 +49,58 @@
             <button class="btn-prev" onclick="prevStep(2)">ย้อนกลับ</button>
             <button class="btn-save" id="saveBtn" onclick="submitData()">💾 บันทึกข้อมูล</button>
         </div>
-        <button class="btn-prev" style="width:100%; margin-top:10px; background:#dc3545;" onclick="resetForm()">ยกเลิก/เริ่มใหม่</button>
+        <button class="btn-prev" style="width:100%; margin-top:10px; background:#dc3545;" onclick="location.reload()">เริ่มใหม่</button>
     </div>
 </div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyGJZSFcQXxIx4aIxi3rDaQULSE3Tm43tlVHiIyuMep07oK7REfYIAIVc18Fbbo5rRH/exec"; // 🚩 เปลี่ยน URL ตรงนี้
-    let currentCriteria = [];
-    let currentRowId = null; 
-    let historyData = [];
-
     function nextStep(s) {
-        if(s === 2 && !document.getElementById('course').value) return alert('กรุณาเลือกวิชาก่อนครับ');
+        if(s === 2 && !document.getElementById('course').value) return alert('เลือกวิชาก่อนครับ');
         if(s === 3) loadCriteria();
-        showStep(s);
-    }
-    function prevStep(s) { showStep(s); }
-    function showStep(s) {
-        document.querySelectorAll('.step').forEach(div => div.classList.remove('active'));
+        document.querySelectorAll('.step').forEach(d => d.classList.remove('active'));
         document.getElementById('step'+s).classList.add('active');
     }
-
-    async function loadCourses() {
-        try {
-            const res = await fetch(`${API_URL}?action=getCourses`);
-            const courses = await res.json();
-            const sel = document.getElementById('course');
-            sel.innerHTML = '<option value="">-- เลือกวิชา --</option>' + courses.map(c => `<option value="${c}">${c}</option>`).join('');
-        } catch(e) { console.log("Error loading courses"); }
+    function prevStep(s) {
+        document.querySelectorAll('.step').forEach(d => d.classList.remove('active'));
+        document.getElementById('step'+s).classList.add('active');
     }
-
+    async function loadCourses() {
+        const res = await fetch(`${API_URL}?action=getCourses`);
+        const courses = await res.json();
+        const sel = document.getElementById('course');
+        sel.innerHTML = '<option value="">-- เลือกวิชา --</option>' + courses.map(c => `<option value="${c}">${c}</option>`).join('');
+    }
     async function loadCriteria() {
         const course = document.getElementById('course').value;
-        const listDiv = document.getElementById('criteriaList');
-        listDiv.innerHTML = "⏳ โหลดเกณฑ์...";
-        
-        try {
-            const res = await fetch(`${API_URL}?action=getCriteria&course=${encodeURIComponent(course)}`);
-            currentCriteria = await res.json();
-            
-            let html = "";
-            currentCriteria.forEach((c, i) => {
-                if(Number(c.max) === 0) {
-                    html += `<div style="background:#eee; padding:5px; margin-top:10px; font-weight:bold;">📍 ${c.label}</div>`;
-                } else {
-                    let key = `${c.category}_${c.label}_${i+1}`;
-                    html += `<div style="margin-bottom:10px;">
-                                <label>${c.label} (เต็ม ${c.max})</label>
-                                <input type="number" class="score-input" data-topic="${key}" max="${c.max}" placeholder="0">
-                             </div>`;
-                }
-            });
-            listDiv.innerHTML = html;
-
-            if(currentRowId) fillOldScores();
-        } catch (e) {
-            listDiv.innerHTML = "❌ โหลดข้อมูลผิดพลาด (ตรวจสอบ URL Web App)";
-        }
-    }
-
-    // ฟังก์ชันโหลดประวัติ (มาแสดงในหน้า 2)
-    async function loadHistory() {
-        const container = document.getElementById('historyContainer');
-        container.innerHTML = "⏳ กำลังดึงประวัติข้อมูล...";
-        try {
-            const res = await fetch(`${API_URL}?action=getHistory`);
-            historyData = await res.json();
-            
-            if(!historyData || historyData.length === 0) {
-                container.innerHTML = "<br>📌 ยังไม่มีประวัติการบันทึกในระบบ";
-                return;
+        document.getElementById('criteriaList').innerHTML = "⏳ โหลดเกณฑ์...";
+        const res = await fetch(`${API_URL}?action=getCriteria&course=${encodeURIComponent(course)}`);
+        const data = await res.json();
+        let html = "";
+        data.forEach((c, i) => {
+            if(Number(c.max) === 0) {
+                html += `<div style="background:#eee; padding:5px; margin-top:10px; font-weight:bold;">📍 ${c.label}</div>`;
+            } else {
+                html += `<div style="margin-bottom:10px;"><label>${c.label} (เต็ม ${c.max})</label>
+                         <input type="number" class="score-input" data-topic="${c.category}_${c.label}_${i+1}" max="${c.max}"></div>`;
             }
-
-            let html = `<table class="history-table">
-                        <tr><th>รหัส/ชื่อ</th><th>วิชา</th><th>ดึงข้อมูล</th></tr>`;
-            historyData.forEach(item => {
-                let name = item["ชื่อ-สกุล"] || item["ชื่อ-นามสกุล"] || "";
-                html += `<tr>
-                    <td><b>${item["รหัสนิสิต"]}</b><br><small>${name}</small></td>
-                    <td>${item["รายวิชา"]}</td>
-                    <td><button class="btn-edit" onclick="editEntry(${item.rowId})">✏️ แก้ไข</button></td>
-                </tr>`;
-            });
-            html += `</table>`;
-            container.innerHTML = html;
-        } catch(e) {
-            container.innerHTML = "<br>❌ ไม่สามารถดึงประวัติได้ กรุณาตรวจสอบการ Deploy Code.gs";
-        }
-    }
-
-    function editEntry(rowId) {
-        const item = historyData.find(d => d.rowId === rowId);
-        if(!item) return;
-
-        currentRowId = rowId;
-        document.getElementById('editModeTag').style.display = "block";
-        document.getElementById('displayRowId').innerText = rowId;
-
-        document.getElementById('course').value = item["รายวิชา"] || "";
-        document.getElementById('group').value = item["กลุ่ม"] || "";
-        document.getElementById('studentId').value = item["รหัสนิสิต"] || "";
-        document.getElementById('studentName').value = item["ชื่อ-สกุล"] || item["ชื่อ-นามสกุล"] || "";
-        document.getElementById('teacher').value = item["อาจารย์ผู้ประเมิน"] || "";
-
-        alert("✅ ดึงข้อมูลนิสิตเรียบร้อย กด 'ถัดไป' เพื่อไปแก้คะแนนได้เลยครับ");
-        // เลื่อนจอขึ้นบนสุดเพื่อให้เห็นปุ่มถัดไปชัดๆ
-        window.scrollTo(0, 0); 
-    }
-
-    function fillOldScores() {
-        const item = historyData.find(d => d.rowId === currentRowId);
-        if(!item) return;
-        document.querySelectorAll('.score-input').forEach(input => {
-            const key = input.getAttribute('data-topic');
-            if(item[key]) input.value = item[key];
         });
+        document.getElementById('criteriaList').innerHTML = html;
     }
-
     async function submitData() {
-        const btn = document.getElementById('saveBtn');
-        btn.disabled = true; btn.innerText = "⏳ กำลังบันทึก...";
-
+        document.getElementById('saveBtn').disabled = true;
         let scores = {};
-        document.querySelectorAll('.score-input').forEach(input => {
-            scores[input.getAttribute('data-topic')] = input.value || "0";
-        });
-
+        document.querySelectorAll('.score-input').forEach(i => scores[i.getAttribute('data-topic')] = i.value || "0");
         const payload = {
-            action: 'saveScore',
-            rowId: currentRowId, 
-            course: document.getElementById('course').value,
-            group: document.getElementById('group').value,
-            studentId: document.getElementById('studentId').value,
-            studentName: document.getElementById('studentName').value,
-            teacher: document.getElementById('teacher').value,
-            scores: scores
+            action: 'saveScore', rowId: null,
+            course: document.getElementById('course').value, group: document.getElementById('group').value,
+            studentId: document.getElementById('studentId').value, studentName: document.getElementById('studentName').value,
+            teacher: document.getElementById('teacher').value, scores: scores
         };
-
-        try {
-            await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-            alert(currentRowId ? '✅ อัปเดตข้อมูลทับแถวเดิมสำเร็จ!' : '✅ บันทึกข้อมูลใหม่สำเร็จ!');
-            location.reload(); 
-        } catch (e) {
-            alert('❌ เกิดข้อผิดพลาด');
-            btn.disabled = false; btn.innerText = "💾 บันทึกข้อมูล";
-        }
-    }
-
-    function resetForm() {
+        await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+        alert('✅ บันทึกข้อมูลสำเร็จ!');
         location.reload();
     }
-
     window.onload = loadCourses;
 </script>
 </body>
