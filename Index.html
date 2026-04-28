@@ -3,128 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบบันทึกคะแนน - Ver.แก้ไขคะแนนซ้ำ</title>
+    <title>ระบบบันทึกคะแนน - ประวัติและแก้ไข</title>
     <style>
-        body { font-family: 'Sarabun', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
-        .container { max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; margin: 0; padding: 15px; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .step { display: none; } 
         .step.active { display: block; }
-        .info-header { background: #e3f2fd; padding: 10px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; color: #1565c0; line-height: 1.6; }
-        h2 { color: #333; font-size: 1.2rem; margin-bottom: 20px; border-left: 5px solid #1a73e8; padding-left: 10px; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; color: #555; }
+        h2 { color: #1a73e8; border-left: 5px solid #1a73e8; padding-left: 10px; margin-bottom: 20px; font-size: 1.2rem; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #444; }
         input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px; box-sizing: border-box; font-size: 16px; }
-        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
-        button { flex: 1; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; }
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
+        button { flex: 1; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
         .btn-next { background: #1a73e8; color: white; }
-        .btn-prev { background: #eee; color: #666; }
-        .btn-save { background: #28a745; color: white; }
-        .preview-box { border: 1px solid #eee; padding: 10px; border-radius: 8px; background: #fafafa; margin-bottom: 10px; font-size: 14px; }
-        .score-row { padding: 10px; border-bottom: 1px solid #eee; display: flex; flex-direction: column; }
+        .btn-prev { background: #666; color: white; }
+        .btn-save { background: #28a745; color: white; width: 100%; margin-top: 10px; }
+        
+        /* สไตล์ปุ่มและตารางประวัติ */
+        .btn-history { background: #ff9800; color: white; width: 100%; margin-top: 15px; }
+        .history-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+        .history-table th, .history-table td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        .history-table th { background: #f8f9fa; }
+        .btn-edit { background: #ffc107; color: black; padding: 6px 12px; font-size: 12px; border-radius: 4px; cursor: pointer; border: none; font-weight: bold; }
+        .status-tag { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 13px; background: #e8f0fe; color: #1a73e8; margin-bottom: 15px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
+    <div id="editModeTag" style="display:none;" class="status-tag">✏️ กำลังอยู่ในโหมดแก้ไขแถวที่: <span id="displayRowId"></span></div>
+
     <div id="step1" class="step active">
-        <h2>หน้า 1: เลือกรายวิชา</h2>
+        <h2>1. ข้อมูลรายวิชา</h2>
         <label>รายวิชา:</label>
-        <select id="course" onchange="updateSummary()"><option value="">-- กำลังโหลด... --</option></select>
+        <select id="course"><option value="">-- กำลังโหลด... --</option></select>
+        <label>กลุ่ม:</label>
+        <input type="text" id="group" placeholder="เช่น 1 หรือ 2(4)">
         <button class="btn-next" onclick="nextStep(2)">ถัดไป</button>
     </div>
 
     <div id="step2" class="step">
-        <div id="info2" class="info-header"></div>
-        <h2>หน้า 2: เลือกกลุ่ม</h2>
-        <input type="text" id="group" placeholder="เช่น 2(4)" oninput="updateSummary()">
+        <h2>2. ข้อมูลนิสิต</h2>
+        <label>รหัสนิสิต:</label>
+        <input type="number" id="studentId" placeholder="64xxxxxx">
+        <label>ชื่อ-นามสกุล:</label>
+        <input type="text" id="studentName" placeholder="ชื่อ-นามสกุล">
+        
         <div class="btn-group">
             <button class="btn-prev" onclick="prevStep(1)">ย้อนกลับ</button>
             <button class="btn-next" onclick="nextStep(3)">ถัดไป</button>
         </div>
+
+        <hr style="margin: 25px 0; border: 0; border-top: 1px dashed #ccc;">
+        
+        <button class="btn-history" onclick="loadHistory()">📜 ดูประวัติเพื่อดึงข้อมูล/แก้ไข</button>
+        <div id="historyContainer" style="overflow-x:auto;"></div>
     </div>
 
     <div id="step3" class="step">
-        <div id="info3" class="info-header"></div>
-        <h2>หน้า 3: ข้อมูลนิสิต</h2>
-        <label>รหัสนิสิต:</label>
-        <input type="number" id="studentId" placeholder="64xxxxxx" oninput="updateSummary()">
-        <label>ชื่อ-นามสกุล:</label>
-        <input type="text" id="studentName" placeholder="นาย/นางสาว..." oninput="updateSummary()">
+        <h2>3. บันทึกคะแนน</h2>
+        <div id="criteriaList">กำลังโหลดเกณฑ์คะแนน...</div>
+        <label style="margin-top:15px;">อาจารย์ผู้ประเมิน:</label>
+        <input type="text" id="teacher">
         <div class="btn-group">
             <button class="btn-prev" onclick="prevStep(2)">ย้อนกลับ</button>
-            <button class="btn-next" onclick="nextStep(4)">ถัดไป</button>
+            <button class="btn-save" id="saveBtn" onclick="submitData()">💾 บันทึกข้อมูล</button>
         </div>
-    </div>
-
-    <div id="step4" class="step">
-        <div id="info4" class="info-header"></div>
-        <h2>หน้า 4: กรอกคะแนนรายข้อ</h2>
-        <div id="criteriaList" class="preview-box">กำลังโหลดเกณฑ์...</div>
-        <div class="btn-group">
-            <button class="btn-prev" onclick="prevStep(3)">ย้อนกลับ</button>
-            <button class="btn-next" onclick="nextStep(8)">ไปหน้าสุดท้าย</button>
-        </div>
-    </div>
-
-    <div id="step8" class="step">
-        <div id="info8" class="info-header"></div>
-        <h2>หน้าสุดท้าย: บันทึกข้อมูล</h2>
-        <label>กลุ่มงาน:</label>
-        <input type="text" id="dept" placeholder="เช่น ศัลยกรรม">
-        <label>อาจารย์ผู้ประเมิน:</label>
-        <input type="text" id="teacher" placeholder="ชื่ออาจารย์">
-        <div class="btn-group">
-            <button class="btn-prev" onclick="prevStep(4)">ย้อนกลับ</button>
-            <button class="btn-save" onclick="submitData()">💾 บันทึกคะแนน</button>
-        </div>
+        <button class="btn-prev" style="width:100%; margin-top:10px; background:#dc3545;" onclick="resetForm()">ยกเลิก/เริ่มใหม่</button>
     </div>
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbyGJZSFcQXxIx4aIxi3rDaQULSE3Tm43tlVHiIyuMep07oK7REfYIAIVc18Fbbo5rRH/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbyGJZSFcQXxIx4aIxi3rDaQULSE3Tm43tlVHiIyuMep07oK7REfYIAIVc18Fbbo5rRH/exec"; // 🚩 เปลี่ยน URL ตรงนี้
+    let currentCriteria = [];
+    let currentRowId = null; 
+    let historyData = [];
 
-    function nextStep(step) {
-        if(step === 2 && !document.getElementById('course').value) return alert('เลือกวิชาด้วยจ้า');
-        if(step === 4) loadCriteria();
-        document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-        document.getElementById('step' + step).classList.add('active');
-        updateSummary();
+    function nextStep(s) {
+        if(s === 2 && !document.getElementById('course').value) return alert('กรุณาเลือกวิชาก่อนครับ');
+        if(s === 3) loadCriteria();
+        showStep(s);
+    }
+    function prevStep(s) { showStep(s); }
+    function showStep(s) {
+        document.querySelectorAll('.step').forEach(div => div.classList.remove('active'));
+        document.getElementById('step'+s).classList.add('active');
     }
 
-    function prevStep(step) {
-        document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-        document.getElementById('step' + step).classList.add('active');
-    }
-
-    function updateSummary() {
-        const txt = `<b>วิชา:</b> ${document.getElementById('course').value} | <b>กลุ่ม:</b> ${document.getElementById('group').value}<br><b>นิสิต:</b> ${document.getElementById('studentId').value} ${document.getElementById('studentName').value}`;
-        [2,3,4,8].forEach(i => { if(document.getElementById('info'+i)) document.getElementById('info'+i).innerHTML = txt; });
+    async function loadCourses() {
+        try {
+            const res = await fetch(`${API_URL}?action=getCourses`);
+            const courses = await res.json();
+            const sel = document.getElementById('course');
+            sel.innerHTML = '<option value="">-- เลือกวิชา --</option>' + courses.map(c => `<option value="${c}">${c}</option>`).join('');
+        } catch(e) { console.log("Error loading courses"); }
     }
 
     async function loadCriteria() {
         const course = document.getElementById('course').value;
-        document.getElementById('criteriaList').innerHTML = "⏳ กำลังโหลด...";
+        const listDiv = document.getElementById('criteriaList');
+        listDiv.innerHTML = "⏳ โหลดเกณฑ์...";
+        
         try {
             const res = await fetch(`${API_URL}?action=getCriteria&course=${encodeURIComponent(course)}`);
-            const data = await res.json();
+            currentCriteria = await res.json();
+            
             let html = "";
-            data.forEach((c, i) => {
+            currentCriteria.forEach((c, i) => {
                 if(Number(c.max) === 0) {
                     html += `<div style="background:#eee; padding:5px; margin-top:10px; font-weight:bold;">📍 ${c.label}</div>`;
                 } else {
-                    // สร้าง Key แบบ Unique: หมวด_ชื่อ_ลำดับ
                     let key = `${c.category}_${c.label}_${i+1}`;
-                    html += `<div class="score-row"><label>${c.label} (เต็ม ${c.max})</label>
-                             <input type="number" class="score-input" data-topic="${key}" max="${c.max}"></div>`;
+                    html += `<div style="margin-bottom:10px;">
+                                <label>${c.label} (เต็ม ${c.max})</label>
+                                <input type="number" class="score-input" data-topic="${key}" max="${c.max}" placeholder="0">
+                             </div>`;
                 }
             });
-            document.getElementById('criteriaList').innerHTML = html;
-        } catch (e) { document.getElementById('criteriaList').innerHTML = "❌ โหลดพลาด"; }
+            listDiv.innerHTML = html;
+
+            if(currentRowId) fillOldScores();
+        } catch (e) {
+            listDiv.innerHTML = "❌ โหลดข้อมูลผิดพลาด (ตรวจสอบ URL Web App)";
+        }
+    }
+
+    // ฟังก์ชันโหลดประวัติ (มาแสดงในหน้า 2)
+    async function loadHistory() {
+        const container = document.getElementById('historyContainer');
+        container.innerHTML = "⏳ กำลังดึงประวัติข้อมูล...";
+        try {
+            const res = await fetch(`${API_URL}?action=getHistory`);
+            historyData = await res.json();
+            
+            if(!historyData || historyData.length === 0) {
+                container.innerHTML = "<br>📌 ยังไม่มีประวัติการบันทึกในระบบ";
+                return;
+            }
+
+            let html = `<table class="history-table">
+                        <tr><th>รหัส/ชื่อ</th><th>วิชา</th><th>ดึงข้อมูล</th></tr>`;
+            historyData.forEach(item => {
+                let name = item["ชื่อ-สกุล"] || item["ชื่อ-นามสกุล"] || "";
+                html += `<tr>
+                    <td><b>${item["รหัสนิสิต"]}</b><br><small>${name}</small></td>
+                    <td>${item["รายวิชา"]}</td>
+                    <td><button class="btn-edit" onclick="editEntry(${item.rowId})">✏️ แก้ไข</button></td>
+                </tr>`;
+            });
+            html += `</table>`;
+            container.innerHTML = html;
+        } catch(e) {
+            container.innerHTML = "<br>❌ ไม่สามารถดึงประวัติได้ กรุณาตรวจสอบการ Deploy Code.gs";
+        }
+    }
+
+    function editEntry(rowId) {
+        const item = historyData.find(d => d.rowId === rowId);
+        if(!item) return;
+
+        currentRowId = rowId;
+        document.getElementById('editModeTag').style.display = "block";
+        document.getElementById('displayRowId').innerText = rowId;
+
+        document.getElementById('course').value = item["รายวิชา"] || "";
+        document.getElementById('group').value = item["กลุ่ม"] || "";
+        document.getElementById('studentId').value = item["รหัสนิสิต"] || "";
+        document.getElementById('studentName').value = item["ชื่อ-สกุล"] || item["ชื่อ-นามสกุล"] || "";
+        document.getElementById('teacher').value = item["อาจารย์ผู้ประเมิน"] || "";
+
+        alert("✅ ดึงข้อมูลนิสิตเรียบร้อย กด 'ถัดไป' เพื่อไปแก้คะแนนได้เลยครับ");
+        // เลื่อนจอขึ้นบนสุดเพื่อให้เห็นปุ่มถัดไปชัดๆ
+        window.scrollTo(0, 0); 
+    }
+
+    function fillOldScores() {
+        const item = historyData.find(d => d.rowId === currentRowId);
+        if(!item) return;
+        document.querySelectorAll('.score-input').forEach(input => {
+            const key = input.getAttribute('data-topic');
+            if(item[key]) input.value = item[key];
+        });
     }
 
     async function submitData() {
-        const btn = document.querySelector('.btn-save');
+        const btn = document.getElementById('saveBtn');
         btn.disabled = true; btn.innerText = "⏳ กำลังบันทึก...";
-        
+
         let scores = {};
         document.querySelectorAll('.score-input').forEach(input => {
             scores[input.getAttribute('data-topic')] = input.value || "0";
@@ -132,6 +196,7 @@
 
         const payload = {
             action: 'saveScore',
+            rowId: currentRowId, 
             course: document.getElementById('course').value,
             group: document.getElementById('group').value,
             studentId: document.getElementById('studentId').value,
@@ -142,17 +207,19 @@
 
         try {
             await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-            alert('✅ บันทึกสำเร็จ!');
-            location.reload();
-        } catch (e) { alert('❌ พลาดจ้า'); btn.disabled = false; }
+            alert(currentRowId ? '✅ อัปเดตข้อมูลทับแถวเดิมสำเร็จ!' : '✅ บันทึกข้อมูลใหม่สำเร็จ!');
+            location.reload(); 
+        } catch (e) {
+            alert('❌ เกิดข้อผิดพลาด');
+            btn.disabled = false; btn.innerText = "💾 บันทึกข้อมูล";
+        }
     }
 
-    window.onload = async () => {
-        const res = await fetch(`${API_URL}?action=getCourses`);
-        const courses = await res.json();
-        const sel = document.getElementById('course');
-        sel.innerHTML = '<option value="">-- เลือกวิชา --</option>' + courses.map(c => `<option value="${c}">${c}</option>`).join('');
-    };
+    function resetForm() {
+        location.reload();
+    }
+
+    window.onload = loadCourses;
 </script>
 </body>
 </html>
