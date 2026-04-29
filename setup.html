@@ -39,23 +39,36 @@
 </head>
 <body>
 
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-    <h2 style="margin: 0; color: #333; font-size: 1.5rem;">
-        <span style="color: #1a73e8; font-weight: bold;">|</span> 📋 ข้อมูลรายวิชา
-    </h2>
-    <button type="button" onclick="loadHistoryAdmin()" style="background: #ff9800; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: inherit; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-        📜 ดูประวัติ / แก้ไขข้อมูล
-    </button>
-</div>
-
-<div id="adminHistorySection" style="display: none; background: #fffdf5; border: 1px solid #ffdc99; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <h3 style="margin: 0; color: #d35400; font-size: 1rem;">รายการคะแนน (1 คน : 1 แถว)</h3>
-        <button type="button" onclick="document.getElementById('adminHistorySection').style.display='none'" style="background: transparent; border: none; font-size: 16px; cursor: pointer; color: #666;">❌ ปิด</button>
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h2 style="margin: 0; color: #333; font-size: 1.5rem;">
+            <span style="color: #1a73e8; font-weight: bold;">|</span> 📋 ข้อมูลรายวิชา
+        </h2>
+        <button type="button" onclick="loadHistoryAdmin()" style="background: #ff9800; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: inherit; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            📜 ดูประวัติ / แก้ไขข้อมูล
+        </button>
     </div>
-    <div id="adminHistoryContainer" style="overflow-x: auto; font-size: 14px;">
+
+    <div class="form-grid">
+        <div class="form-group">
+            <label>ชื่อรายวิชา / รหัสวิชา:</label>
+            <input type="text" id="courseName" placeholder="เช่น 0101234 สรีรวิทยา">
         </div>
-</div>
+        <div class="form-group">
+            <label>กลุ่ม / Section:</label>
+            <input type="text" id="courseGroup" placeholder="เช่น 1 หรือ 2(4)">
+        </div>
+    </div>
+
+    <div id="adminHistorySection" style="display: none; background: #fffdf5; border: 1px solid #ffdc99; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 style="margin: 0; color: #d35400; font-size: 1rem;">รายการคะแนน (1 คน : 1 แถว)</h3>
+            <button type="button" onclick="document.getElementById('adminHistorySection').style.display='none'" style="background: transparent; border: none; font-size: 16px; cursor: pointer; color: #666;">❌ ปิด</button>
+        </div>
+        <div id="adminHistoryContainer" style="overflow-x: auto; font-size: 14px;">
+            </div>
+    </div>
+
     <h2>⚙️ ตั้งค่าเกณฑ์การประเมิน</h2>
     <table>
         <thead>
@@ -72,7 +85,7 @@
             </tr>
         </thead>
         <tbody id="criteriaBody">
-            </tbody>
+        </tbody>
     </table>
     
     <button class="btn-add-cat" onclick="addCategory()">➕ เพิ่มหมวดการประเมินหลัก</button>
@@ -114,19 +127,38 @@
     </div>
 
     <button class="btn-save" onclick="saveSetup()">💾 บันทึกการตั้งค่ารายวิชานี้</button>
-        <hr style="margin-top: 40px;">
+    
+    <hr style="margin-top: 40px;">
     <h2>🗑️ จัดการรายวิชาที่มีอยู่ในระบบ</h2>
     <div id="courseManagementList" style="background:#f9f9f9; padding:15px; border-radius:8px; border: 1px solid #ddd;">
         ⏳ กำลังโหลดรายชื่อวิชา...
     </div>
+</div>
+
+<div id="editModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; display: flex; align-items: center; justify-content: center;">
+    <div style="background:white; width: 90%; max-width:550px; padding:25px; border-radius:12px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
+        <h3 style="color:#1a73e8; margin-top:0; border-bottom:1px solid #eee; padding-bottom:10px;">✏️ แก้ไขข้อมูลนิสิต (อัปเดตทับแถวเดิม)</h3>
+        <div id="editFormContent"></div>
+        <div style="display:flex; gap:10px; margin-top:20px;">
+            <button type="button" onclick="closeEditModal()" style="flex:1; background:#f1f3f4; color:#333; border:none; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold;">ยกเลิก</button>
+            <button type="button" id="btnSaveEdit" onclick="saveEditAdmin()" style="flex:2; background:#28a745; color:white; border:none; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold;">💾 บันทึกการแก้ไข</button>
+        </div>
+    </div>
+</div>
+
 <script>
-    // 📍 เอา URL ใหม่จาก Google Apps Script มาวางตรงนี้นะครับ
+    // 📍 URL Google Apps Script
     const API_URL = "https://script.google.com/macros/s/AKfycbyGJZSFcQXxIx4aIxi3rDaQULSE3Tm43tlVHiIyuMep07oK7REfYIAIVc18Fbbo5rRH/exec";
 
+    // เมื่อโหลดหน้าเว็บเสร็จ ให้ทำงาน 2 อย่างนี้
     document.addEventListener("DOMContentLoaded", () => {
-        addCategory("MEQ");
+        addCategory("MEQ"); // 1. สร้างตาราง MEQ ตั้งต้น
+        loadCourseList();   // 2. โหลดรายชื่อวิชามาแสดง
     });
 
+    // ==========================================
+    // ⚙️ ส่วนที่ 1 : ระบบตั้งค่าเกณฑ์รายวิชา
+    // ==========================================
     function addCategory(defaultName = "") {
         const tbody = document.getElementById('criteriaBody');
         const tr = document.createElement('tr');
@@ -174,18 +206,16 @@
 
     function removeSubTopic(btn) { btn.closest('.sub-row').remove(); }
 
-    // 🌟 ฟังก์ชันบันทึกข้อมูลของจริง (ส่งไป Google Sheets)
     async function saveSetup() {
         const courseName = document.getElementById('courseName').value;
         const courseGroup = document.getElementById('courseGroup').value;
         
-        if(!courseName) return alert("กรุณากรอกชื่อรายวิชาก่อนบันทึกครับ");
+        if(!courseName) return alert("กรุณากรอกชื่อรายวิชา/รหัสวิชา ก่อนบันทึกครับ");
 
         const btn = document.querySelector('.btn-save');
         btn.innerText = "⏳ กำลังส่งข้อมูลไปยังฐานข้อมูล...";
         btn.disabled = true;
 
-        // ดึงข้อมูลเกณฑ์การประเมินจากตาราง
         const criteriaData = [];
         document.querySelectorAll('#criteriaBody tr').forEach(tr => {
             const catName = tr.querySelector('.cat-name').value;
@@ -202,7 +232,6 @@
             });
         });
 
-        // จัดเตรียมชุดข้อมูลทั้งหมด
         const payload = {
             action: 'saveSetup',
             courseName: courseName,
@@ -218,28 +247,23 @@
         };
 
         try {
-            // ยิงข้อมูลไป Google Sheets
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            });
+            const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
             const result = await response.json();
             
             if(result.status === 'success') {
                 alert("✅ บันทึกการตั้งค่ารายวิชาสำเร็จ!");
-                location.reload(); // <--- คำสั่งนี้แหละครับที่จะรีเฟรชหน้าให้เคลียร์ข้อมูล
+                location.reload(); 
             } else {
                 alert("❌ เกิดข้อผิดพลาด: " + result.message);
-                btn.innerText = "💾 บันทึกการตั้งค่ารายวิชานี้";
-                btn.disabled = false;
             }
         } catch (error) {
-            alert("❌ ไม่สามารถเชื่อมต่อกับระบบได้ กรุณาตรวจสอบ URL");
+            alert("❌ ไม่สามารถเชื่อมต่อกับระบบได้");
+        } finally {
             btn.innerText = "💾 บันทึกการตั้งค่ารายวิชานี้";
             btn.disabled = false;
         }
     }
-// โหลดรายชื่อวิชามาแสดงเพื่อให้กดลบได้
+
     async function loadCourseList() {
         try {
             const res = await fetch(`${API_URL}?action=getCourses`);
@@ -254,39 +278,137 @@
             });
             document.getElementById('courseManagementList').innerHTML = html || "ยังไม่มีวิชาในระบบครับ";
         } catch(e) {
-            document.getElementById('courseManagementList').innerHTML = "โหลดข้อมูลไม่สำเร็จ กรุณาเช็ค API_URL";
+            document.getElementById('courseManagementList').innerHTML = "โหลดข้อมูลไม่สำเร็จ";
         }
     }
 
-    // ฟังก์ชันสั่งลบวิชา
     async function deleteCourse(name) {
         if(!confirm(`⚠️ ยืนยันการลบวิชา "${name}" ใช่ไหม?\n(ข้อมูลเกณฑ์คะแนนของวิชานี้จะถูกลบไปด้วยทั้งหมด)`)) return;
-        
-        await fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'deleteCourse', courseName: name })
-        });
+        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteCourse', courseName: name }) });
         alert("✅ ลบวิชาเรียบร้อยแล้ว");
         location.reload(); 
     }
 
-    // ให้ดึงรายชื่อวิชามาแสดงตอนเปิดหน้าเว็บ
-    document.addEventListener("DOMContentLoaded", loadCourseList);
-<div id="editModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; display: flex; align-items: center; justify-content: center;">
-    <div style="background:white; width: 90%; max-width:550px; padding:25px; border-radius:12px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
-        <h3 style="color:#1a73e8; margin-top:0; border-bottom:1px solid #eee; padding-bottom:10px;">✏️ แก้ไขข้อมูลนิสิต (อัปเดตทับแถวเดิม)</h3>
-        <div id="editFormContent"></div>
-        <div style="display:flex; gap:10px; margin-top:20px;">
-            <button type="button" onclick="closeEditModal()" style="flex:1; background:#f1f3f4; color:#333; border:none; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold;">ยกเลิก</button>
-            <button type="button" id="btnSaveEdit" onclick="saveEditAdmin()" style="flex:2; background:#28a745; color:white; border:none; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold;">💾 บันทึกการแก้ไข</button>
-        </div>
-    </div>
-</div>
+    // ==========================================
+    // 📜 ส่วนที่ 2 : ระบบดูประวัติและแก้ไขข้อมูล
+    // ==========================================
+    let historyDataAdmin = [];
+    let currentRowIdAdmin = null;
 
-<script>
-    // ซ่อน Modal ไว้ก่อนตอนโหลดหน้า
-    document.getElementById('editModal').style.display = 'none';
-</script>
+    async function loadHistoryAdmin() {
+        const section = document.getElementById('adminHistorySection');
+        const container = document.getElementById('adminHistoryContainer');
+        section.style.display = 'block';
+        container.innerHTML = "⏳ กำลังดึงข้อมูลจากชีต...";
+        
+        try {
+            const res = await fetch(`${API_URL}?action=getHistory`);
+            historyDataAdmin = await res.json();
+            
+            if(!historyDataAdmin.length) {
+                container.innerHTML = "<p style='color:red;'>ไม่พบข้อมูลประวัติในระบบ</p>";
+                return;
+            }
+
+            let html = `<table style="width:100%; border-collapse: collapse; font-family: inherit;">
+                <tr style="background:#f1f3f4; text-align:left;">
+                    <th style="padding:8px; border:1px solid #ddd;">รหัส</th>
+                    <th style="padding:8px; border:1px solid #ddd;">ชื่อ-สกุล</th>
+                    <th style="padding:8px; border:1px solid #ddd;">วิชา</th>
+                    <th style="padding:8px; border:1px solid #ddd; text-align:center;">จัดการ</th>
+                </tr>`;
+            
+            historyDataAdmin.forEach(item => {
+                let name = item["ชื่อ-สกุล"] || item["ชื่อ-นามสกุล"] || "";
+                html += `<tr>
+                    <td style="padding:8px; border:1px solid #ddd;">${item["รหัสนิสิต"] || '-'}</td>
+                    <td style="padding:8px; border:1px solid #ddd;">${name}</td>
+                    <td style="padding:8px; border:1px solid #ddd;">${item["รายวิชา"] || '-'}</td>
+                    <td style="padding:8px; border:1px solid #ddd; text-align:center;">
+                        <button type="button" onclick="openEditModal(${item.rowId})" style="background:#4285f4; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:12px;">แก้ไข</button>
+                    </td>
+                </tr>`;
+            });
+            html += `</table>`;
+            container.innerHTML = html;
+        } catch(e) { 
+            container.innerHTML = "❌ เกิดข้อผิดพลาดในการโหลดข้อมูล"; 
+        }
+    }
+
+    function openEditModal(rowId) {
+        const item = historyDataAdmin.find(d => d.rowId === rowId);
+        if(!item) return;
+        currentRowIdAdmin = rowId;
+        
+        const standardKeys = ["Timestamp", "รายวิชา", "กลุ่ม", "รหัสนิสิต", "ชื่อ-สกุล", "ชื่อ-นามสกุล", "อาจารย์ผู้ประเมิน", "rowId"];
+        
+        let formHtml = `
+            <div style="display:flex; gap:10px; margin-bottom:10px;">
+                <div style="flex:1"><label style="font-size:12px; color:#666; display:block;">รายวิชา:</label><input type="text" id="edit_course" value="${item['รายวิชา'] || ''}" style="width:100%; padding:6px; border:1px solid #ccc; border-radius:4px;"></div>
+                <div style="flex:1"><label style="font-size:12px; color:#666; display:block;">กลุ่ม:</label><input type="text" id="edit_group" value="${item['กลุ่ม'] || ''}" style="width:100%; padding:6px; border:1px solid #ccc; border-radius:4px;"></div>
+            </div>
+            <div style="display:flex; gap:10px; margin-bottom:10px;">
+                <div style="flex:1"><label style="font-size:12px; color:#666; display:block;">รหัสนิสิต:</label><input type="text" id="edit_studentId" value="${item['รหัสนิสิต'] || ''}" style="width:100%; padding:6px; border:1px solid #ccc; border-radius:4px;"></div>
+                <div style="flex:2"><label style="font-size:12px; color:#666; display:block;">ชื่อ-สกุล:</label><input type="text" id="edit_studentName" value="${item['ชื่อ-สกุล'] || item['ชื่อ-นามสกุล'] || ''}" style="width:100%; padding:6px; border:1px solid #ccc; border-radius:4px;"></div>
+            </div>
+            <div style="margin-bottom:15px;">
+                <label style="font-size:12px; color:#666; display:block;">อาจารย์ผู้ประเมิน:</label>
+                <input type="text" id="edit_teacher" value="${item['อาจารย์ผู้ประเมิน'] || ''}" style="width:100%; padding:6px; border:1px solid #ccc; border-radius:4px;">
+            </div>
+            <p style="font-weight:bold; font-size:14px; border-top:1px dashed #ccc; padding-top:10px; margin-top:10px;">คะแนนรายข้อ:</p>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+        `;
+
+        for(let key in item) {
+            if(!standardKeys.includes(key) && item[key] !== "") {
+                formHtml += `<div>
+                                <label style="font-size:12px; color:#555; display:block;">${key}</label> 
+                                <input type="number" class="admin-score-input" data-topic="${key}" value="${item[key]}" style="width:100%; padding:6px; border:1px solid #ddd; border-radius:4px; box-sizing:border-box;">
+                             </div>`;
+            }
+        }
+        formHtml += `</div>`;
+        
+        document.getElementById('editFormContent').innerHTML = formHtml;
+        document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function closeEditModal() { document.getElementById('editModal').style.display = 'none'; }
+
+    async function saveEditAdmin() {
+        const btn = document.getElementById('btnSaveEdit');
+        btn.disabled = true; 
+        btn.innerText = "⏳ กำลังบันทึกทับ...";
+        
+        let scores = {};
+        document.querySelectorAll('.admin-score-input').forEach(i => {
+            scores[i.getAttribute('data-topic')] = i.value;
+        });
+
+        const payload = {
+            action: 'saveScore', 
+            rowId: currentRowIdAdmin,
+            course: document.getElementById('edit_course').value,
+            group: document.getElementById('edit_group').value,
+            studentId: document.getElementById('edit_studentId').value,
+            studentName: document.getElementById('edit_studentName').value,
+            teacher: document.getElementById('edit_teacher').value,
+            scores: scores
+        };
+
+        try {
+            await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+            alert("✅ แก้ไขข้อมูลเรียบร้อยแล้ว!");
+            closeEditModal();
+            loadHistoryAdmin(); 
+        } catch(e) { 
+            alert("❌ เกิดข้อผิดพลาดในการบันทึก"); 
+        } finally {
+            btn.disabled = false; 
+            btn.innerText = "💾 บันทึกการแก้ไข";
+        }
+    }
 </script>
 </body>
 </html>
