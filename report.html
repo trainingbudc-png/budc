@@ -64,37 +64,42 @@
         });
     });
 
-    async function loadReport() {
-        const course = document.getElementById('courseSelect').value;
-        if(!course) return;
+   async function loadReport() {
+    const course = document.getElementById('courseSelect').value;
+    if(!course) return;
 
-        const body = document.getElementById('reportTableBody');
-        body.innerHTML = "<tr><td colspan='4'>⏳ กำลังคำนวณคะแนน...</td></tr>";
-        document.getElementById('reportContent').style.display = 'block';
+    const body = document.getElementById('reportTableBody');
+    body.innerHTML = "<tr><td colspan='4'>⏳ กำลังคำนวณคะแนน...</td></tr>";
+    document.getElementById('reportContent').style.display = 'block';
 
-        try {
-            // เรียกฟังก์ชัน getGradingData ที่เราสร้างใน Code.gs
-            const res = await fetch(`${API_URL}?action=getGradingData&courseName=${encodeURIComponent(course)}`);
-            const data = await res.json();
+    try {
+        const res = await fetch(`${API_URL}?action=getGradingData&courseName=${encodeURIComponent(course)}`);
+        const data = await res.json();
 
-            document.getElementById('displayMPL').innerText = data.baseMPL;
-            document.getElementById('displayInterval').innerText = data.interval;
-
-            body.innerHTML = "";
-            data.students.forEach(s => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${s.id}</td>
-                    <td style="text-align:left;">${s.name}</td>
-                    <td>${s.totalWeightedScore.toFixed(2)}</td>
-                    <td class="grade-${s.grade}">${s.grade}</td>
-                `;
-                body.appendChild(tr);
-            });
-        } catch (e) {
-            alert("เกิดข้อผิดพลาดในการโหลดข้อมูล");
+        // 🚩 ถ้าหลังบ้านส่ง error กลับมา ให้แสดงแจ้งเตือน
+        if (data.error) {
+            body.innerHTML = `<tr><td colspan='4' style='color:red; padding:20px;'>❌ ${data.error}</td></tr>`;
+            return;
         }
+
+        document.getElementById('displayMPL').innerText = data.baseMPL;
+        document.getElementById('displayInterval').innerText = data.interval;
+
+        body.innerHTML = "";
+        data.students.forEach(s => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${s.id}</td>
+                <td style="text-align:left;">${s.name}</td>
+                <td>${s.score.toFixed(2)}</td>
+                <td class="grade-${s.grade}">${s.grade}</td>
+            `;
+            body.appendChild(tr);
+        });
+    } catch (e) {
+        body.innerHTML = "<tr><td colspan='4' style='color:red;'>❌ ไม่สามารถเชื่อมต่อกับระบบได้ (Network Error)</td></tr>";
     }
+}
 </script>
 </body>
 </html>
