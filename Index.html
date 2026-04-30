@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบบันทึกคะแนน - Ver.แก้ไขคะแนนซ้ำ</title>
+    <title>ระบบบันทึกคะแนน - Ver.อัปเกรดความสวยงาม</title>
     <style>
         body { font-family: 'Sarabun', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
         .container { max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
@@ -13,14 +13,26 @@
         h2 { color: #333; font-size: 1.2rem; margin-bottom: 20px; border-left: 5px solid #1a73e8; padding-left: 10px; }
         label { display: block; margin-bottom: 8px; font-weight: bold; color: #555; }
         input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px; box-sizing: border-box; font-size: 16px; }
-        input[readonly] { background-color: #f0f0f0; color: #666; cursor: not-allowed; } /* ทำให้ช่องที่พิมพ์ไม่ได้ดูเป็นสีเทา */
+        input[readonly] { background-color: #f8f9fa; color: #1a73e8; font-weight: bold; border: 1px dashed #abc; }
+        
+        /* แก้ไขส่วนกรอกคะแนนให้สวยงาม (ข้อความซ้าย ช่องขวา) */
+        .score-row { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 12px 10px; 
+            border-bottom: 1px solid #eee; 
+            background: #fff;
+        }
+        .score-label { flex: 1; font-size: 14px; color: #333; margin-right: 10px; }
+        .score-input-box { width: 80px !important; margin-bottom: 0 !important; text-align: center; border-color: #1a73e8; }
+        
         .btn-group { display: flex; gap: 10px; margin-top: 20px; }
         button { flex: 1; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; }
         .btn-next { background: #1a73e8; color: white; }
         .btn-prev { background: #eee; color: #666; }
         .btn-save { background: #28a745; color: white; }
-        .preview-box { border: 1px solid #eee; padding: 10px; border-radius: 8px; background: #fafafa; margin-bottom: 10px; font-size: 14px; }
-        .score-row { padding: 10px; border-bottom: 1px solid #eee; display: flex; flex-direction: column; }
+        .preview-box { border: 1px solid #eee; padding: 5px; border-radius: 8px; background: #fafafa; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -35,8 +47,8 @@
 
     <div id="step2" class="step">
         <div id="info2" class="info-header"></div>
-        <h2>หน้า 2: เลือกกลุ่ม</h2>
-        <input type="text" id="group" placeholder="จะขึ้นอัตโนมัติเมื่อเลือกวิชา" readonly>
+        <h2>หน้า 2: กลุ่มนิสิต</h2>
+        <input type="text" id="group" placeholder="..." readonly>
         <div class="btn-group">
             <button class="btn-prev" onclick="prevStep(1)">ย้อนกลับ</button>
             <button class="btn-next" onclick="nextStep(3)">ถัดไป</button>
@@ -70,9 +82,9 @@
         <div id="info8" class="info-header"></div>
         <h2>หน้าสุดท้าย: บันทึกข้อมูล</h2>
         <label>กลุ่มงาน:</label>
-        <input type="text" id="dept" placeholder="จะขึ้นอัตโนมัติเมื่อเลือกวิชา" readonly>
+        <input type="text" id="dept" placeholder="..." readonly>
         <label>อาจารย์ผู้ประเมิน:</label>
-        <input type="text" id="teacher" placeholder="จะขึ้นอัตโนมัติเมื่อเลือกวิชา" readonly>
+        <input type="text" id="teacher" placeholder="..." readonly>
         <div class="btn-group">
             <button class="btn-prev" onclick="prevStep(4)">ย้อนกลับ</button>
             <button class="btn-save" onclick="submitData()">💾 บันทึกคะแนน</button>
@@ -83,41 +95,28 @@
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyGJZSFcQXxIx4aIxi3rDaQULSE3Tm43tlVHiIyuMep07oK7REfYIAIVc18Fbbo5rRH/exec"; 
 
-    // --- ฟังก์ชันใหม่: ดึงข้อมูลกลุ่มและอาจารย์อัตโนมัติ ---
+    // ฟังก์ชันดึงข้อมูลอัตโนมัติ
     async function autoFillData() {
         const course = document.getElementById('course').value;
-        
-        // อัปเดตข้อมูลสรุปด้านบนก่อน
-        updateSummary();
-
-        // ถ้าไม่ได้เลือกวิชา ให้ล้างช่องให้ว่าง
-        if (!course) {
-            document.getElementById('group').value = '';
-            document.getElementById('dept').value = '';
-            document.getElementById('teacher').value = '';
-            updateSummary();
-            return;
-        }
+        if (!course) return;
 
         try {
-            // ดึงข้อมูล Setup จาก Google Sheets
             const res = await fetch(`${API_URL}?action=getCourseSetup&courseName=${encodeURIComponent(course)}`);
             const data = await res.json();
             
-            if (data && data.courseName) {
-                // หยอดข้อมูลใส่ช่อง
-                document.getElementById('group').value = data.courseGroup || '';
-                document.getElementById('dept').value = data.department || '';
-                document.getElementById('teacher').value = data.teacher || '';
+            if (data) {
+                // หยอดข้อมูลใส่ช่อง Input
+                document.getElementById('group').value = data.courseGroup || '-';
+                document.getElementById('dept').value = data.department || '-';
+                document.getElementById('teacher').value = data.teacher || '-';
                 
-                // อัปเดตข้อมูลสรุปด้านบนอีกรอบเพื่อให้โชว์กลุ่มที่ดึงมาได้
-                updateSummary(); 
+                // หลังจากหยอดเสร็จ ให้สั่งอัปเดตตัวหนังสือ Summary ทันที
+                updateSummary();
             }
         } catch (e) {
-            console.error("เกิดข้อผิดพลาดในการดึงข้อมูลอัตโนมัติ:", e);
+            console.error("Auto-fill error:", e);
         }
     }
-    // ------------------------------------------------
 
     function nextStep(step) {
         if(step === 2 && !document.getElementById('course').value) return alert('เลือกวิชาด้วยจ้า');
@@ -133,7 +132,12 @@
     }
 
     function updateSummary() {
-        const txt = `<b>วิชา:</b> ${document.getElementById('course').value} | <b>กลุ่ม:</b> ${document.getElementById('group').value}<br><b>นิสิต:</b> ${document.getElementById('studentId').value} ${document.getElementById('studentName').value}`;
+        const course = document.getElementById('course').value || '-';
+        const group = document.getElementById('group').value || '-';
+        const sid = document.getElementById('studentId').value || '...';
+        const sname = document.getElementById('studentName').value || '...';
+        
+        const txt = `<b>วิชา:</b> ${course} | <b>กลุ่ม:</b> ${group}<br><b>นิสิต:</b> ${sid} ${sname}`;
         [2,3,4,8].forEach(i => { if(document.getElementById('info'+i)) document.getElementById('info'+i).innerHTML = txt; });
     }
 
@@ -146,11 +150,15 @@
             let html = "";
             data.forEach((c, i) => {
                 if(Number(c.max) === 0) {
-                    html += `<div style="background:#eee; padding:5px; margin-top:10px; font-weight:bold;">📍 ${c.label}</div>`;
+                    html += `<div style="background:#e9ecef; padding:8px; margin-top:10px; font-weight:bold; border-radius:5px;">📍 ${c.label}</div>`;
                 } else {
                     let key = `${c.category}_${c.label}_${i+1}`;
-                    html += `<div class="score-row"><label>${c.label} (เต็ม ${c.max})</label>
-                             <input type="number" class="score-input" data-topic="${key}" max="${c.max}"></div>`;
+                    // ปรับโครงสร้าง HTML ตรงนี้ให้ Label อยู่ซ้าย Input อยู่ขวา
+                    html += `
+                    <div class="score-row">
+                        <div class="score-label">${c.label} <small style="color:#888;">(เต็ม ${c.max})</small></div>
+                        <input type="number" class="score-input score-input-box" data-topic="${key}" max="${c.max}" placeholder="0">
+                    </div>`;
                 }
             });
             document.getElementById('criteriaList').innerHTML = html;
@@ -180,14 +188,16 @@
             await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
             alert('✅ บันทึกสำเร็จ!');
             location.reload();
-        } catch (e) { alert('❌ พลาดจ้า'); btn.disabled = false; }
+        } catch (e) { alert('❌ พลาดจ้า'); btn.disabled = false; btn.innerText = "💾 บันทึกคะแนน"; }
     }
 
     window.onload = async () => {
-        const res = await fetch(`${API_URL}?action=getCourses`);
-        const courses = await res.json();
-        const sel = document.getElementById('course');
-        sel.innerHTML = '<option value="">-- เลือกวิชา --</option>' + courses.map(c => `<option value="${c}">${c}</option>`).join('');
+        try {
+            const res = await fetch(`${API_URL}?action=getCourses`);
+            const courses = await res.json();
+            const sel = document.getElementById('course');
+            sel.innerHTML = '<option value="">-- เลือกวิชา --</option>' + courses.map(c => `<option value="${c}">${c}</option>`).join('');
+        } catch (e) { console.error("Load courses error:", e); }
     };
 </script>
 </body>
