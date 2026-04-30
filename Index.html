@@ -13,6 +13,7 @@
         h2 { color: #333; font-size: 1.2rem; margin-bottom: 20px; border-left: 5px solid #1a73e8; padding-left: 10px; }
         label { display: block; margin-bottom: 8px; font-weight: bold; color: #555; }
         input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px; box-sizing: border-box; font-size: 16px; }
+        input[readonly] { background-color: #f0f0f0; color: #666; cursor: not-allowed; } /* ทำให้ช่องที่พิมพ์ไม่ได้ดูเป็นสีเทา */
         .btn-group { display: flex; gap: 10px; margin-top: 20px; }
         button { flex: 1; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; }
         .btn-next { background: #1a73e8; color: white; }
@@ -28,14 +29,14 @@
     <div id="step1" class="step active">
         <h2>หน้า 1: เลือกรายวิชา</h2>
         <label>รายวิชา:</label>
-        <select id="course" onchange="updateSummary()"><option value="">-- กำลังโหลด... --</option></select>
+        <select id="course" onchange="autoFillData()"><option value="">-- กำลังโหลด... --</option></select>
         <button class="btn-next" onclick="nextStep(2)">ถัดไป</button>
     </div>
 
     <div id="step2" class="step">
         <div id="info2" class="info-header"></div>
         <h2>หน้า 2: เลือกกลุ่ม</h2>
-        <input type="text" id="group" placeholder="เช่น 2(4)" oninput="updateSummary()">
+        <input type="text" id="group" placeholder="จะขึ้นอัตโนมัติเมื่อเลือกวิชา" readonly>
         <div class="btn-group">
             <button class="btn-prev" onclick="prevStep(1)">ย้อนกลับ</button>
             <button class="btn-next" onclick="nextStep(3)">ถัดไป</button>
@@ -69,9 +70,9 @@
         <div id="info8" class="info-header"></div>
         <h2>หน้าสุดท้าย: บันทึกข้อมูล</h2>
         <label>กลุ่มงาน:</label>
-        <input type="text" id="dept" placeholder="เช่น ศัลยกรรม">
+        <input type="text" id="dept" placeholder="จะขึ้นอัตโนมัติเมื่อเลือกวิชา" readonly>
         <label>อาจารย์ผู้ประเมิน:</label>
-        <input type="text" id="teacher" placeholder="ชื่ออาจารย์">
+        <input type="text" id="teacher" placeholder="จะขึ้นอัตโนมัติเมื่อเลือกวิชา" readonly>
         <div class="btn-group">
             <button class="btn-prev" onclick="prevStep(4)">ย้อนกลับ</button>
             <button class="btn-save" onclick="submitData()">💾 บันทึกคะแนน</button>
@@ -81,6 +82,42 @@
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyGJZSFcQXxIx4aIxi3rDaQULSE3Tm43tlVHiIyuMep07oK7REfYIAIVc18Fbbo5rRH/exec"; 
+
+    // --- ฟังก์ชันใหม่: ดึงข้อมูลกลุ่มและอาจารย์อัตโนมัติ ---
+    async function autoFillData() {
+        const course = document.getElementById('course').value;
+        
+        // อัปเดตข้อมูลสรุปด้านบนก่อน
+        updateSummary();
+
+        // ถ้าไม่ได้เลือกวิชา ให้ล้างช่องให้ว่าง
+        if (!course) {
+            document.getElementById('group').value = '';
+            document.getElementById('dept').value = '';
+            document.getElementById('teacher').value = '';
+            updateSummary();
+            return;
+        }
+
+        try {
+            // ดึงข้อมูล Setup จาก Google Sheets
+            const res = await fetch(`${API_URL}?action=getCourseSetup&courseName=${encodeURIComponent(course)}`);
+            const data = await res.json();
+            
+            if (data && data.courseName) {
+                // หยอดข้อมูลใส่ช่อง
+                document.getElementById('group').value = data.courseGroup || '';
+                document.getElementById('dept').value = data.department || '';
+                document.getElementById('teacher').value = data.teacher || '';
+                
+                // อัปเดตข้อมูลสรุปด้านบนอีกรอบเพื่อให้โชว์กลุ่มที่ดึงมาได้
+                updateSummary(); 
+            }
+        } catch (e) {
+            console.error("เกิดข้อผิดพลาดในการดึงข้อมูลอัตโนมัติ:", e);
+        }
+    }
+    // ------------------------------------------------
 
     function nextStep(step) {
         if(step === 2 && !document.getElementById('course').value) return alert('เลือกวิชาด้วยจ้า');
@@ -111,7 +148,6 @@
                 if(Number(c.max) === 0) {
                     html += `<div style="background:#eee; padding:5px; margin-top:10px; font-weight:bold;">📍 ${c.label}</div>`;
                 } else {
-                    // สร้าง Key แบบ Unique: หมวด_ชื่อ_ลำดับ
                     let key = `${c.category}_${c.label}_${i+1}`;
                     html += `<div class="score-row"><label>${c.label} (เต็ม ${c.max})</label>
                              <input type="number" class="score-input" data-topic="${key}" max="${c.max}"></div>`;
