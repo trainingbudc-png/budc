@@ -136,6 +136,7 @@
             margin-bottom: 10px;
         }
     </style>
+
 </head>
 
 <body>
@@ -309,11 +310,37 @@
                 scores: scores
             };
 
+            // 1. เปลี่ยนปุ่มเป็นกำลังบันทึกและล็อคปุ่มไว้
+            const btn = document.querySelector('button[onclick="saveScore()"]'); // หรือ ID ของปุ่มบันทึก
+            btn.innerText = "⏳ กำลังบันทึกข้อมูลไปที่ Sheets...";
+            btn.disabled = true;
+            btn.style.opacity = "0.7";
+
             try {
+                // ส่งข้อมูลไป Google Sheets
                 await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+
                 alert('✅ บันทึกคะแนนสำเร็จ!');
-                location.reload();
-            } catch (e) { alert('❌ ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่'); btn.disabled = false; btn.innerText = "💾 บันทึกคะแนน"; }
+
+                // 2. เคลียร์แค่ช่องคะแนน รหัสนิสิต และชื่อ (ไม่ต้องรีเฟรชหน้าใหม่ให้เสียเวลา)
+                document.querySelectorAll('.score-input').forEach(input => input.value = "");
+                document.getElementById('studentId').value = "";
+                document.getElementById('studentName').value = "";
+
+                // คืนค่าปุ่มให้กลับมาพร้อมกดใหม่
+                btn.innerText = "💾 บันทึกคะแนน";
+                btn.disabled = false;
+                btn.style.opacity = "1";
+
+                // โฟกัสไปที่ช่องรหัสนิสิตเพื่อพร้อมพิมพ์คนต่อไปทันที
+                document.getElementById('studentId').focus();
+
+            } catch (e) {
+                alert('❌ ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่');
+                btn.disabled = false;
+                btn.innerText = "💾 บันทึกคะแนน";
+                btn.style.opacity = "1";
+            }
         }
 
         window.onload = async () => {

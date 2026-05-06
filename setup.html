@@ -168,16 +168,16 @@
 
     <div class="container">
         <div style="margin-bottom: 20px;">
-    <a href="index.html" style="text-decoration: none; color: #1a73e8; font-weight: bold; font-size: 16px;">
-        ⬅️ กลับหน้าหลัก (กรอกคะแนน)
-    </a>
-</div>
+            <a href="index.html" style="text-decoration: none; color: #1a73e8; font-weight: bold; font-size: 16px;">
+                ⬅️ กลับหน้าหลัก (กรอกคะแนน)
+            </a>
+        </div>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <h2 style="margin: 0; color: #333; font-size: 1.5rem;">
                 <span style="color: #1a73e8; font-weight: bold;">|</span> 📋 ข้อมูลรายวิชา
             </h2>
             <button type="button" onclick="openCourseHistory()"
-                style="background: #ff9800; color: white; padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: inherit; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                style="background: #1a73e8; color: white; padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: inherit; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                 📜 จัดการ / แก้ไขข้อมูลวิชาเดิม
             </button>
         </div>
@@ -218,11 +218,11 @@
         <div class="form-grid">
             <div class="form-group">
                 <label>อันตรรภาคชั้น (Interval):</label>
-                <input type="number" id="interval" step="0.1" value="3.5">
+                <input type="number" id="interval" step="0.1" value="">
             </div>
             <div class="form-group">
                 <label>กลุ่มงาน:</label>
-                <input type="text" id="department" value="ศัลยกรรม">
+                <input type="text" id="department" value="">
             </div>
             <div class="form-group">
                 <label>วันที่เริ่ม:</label>
@@ -237,16 +237,13 @@
         <h2>👨‍🏫 รายนามอาจารย์</h2>
         <div class="form-grid">
             <div class="form-group">
-                <label>อาจารย์ผู้ประเมิน:</label>
-                <input type="text" id="teacher" placeholder="ชื่ออาจารย์">
+                <label>อาจารย์ผู้ประเมิน</label>
+                <input type="text" id="teacher" placeholder="ชื่ออาจารย์ผู้รับผิดชอบ">
             </div>
+
             <div class="form-group">
-                <label>อาจารย์รับผิดชอบรายวิชา:</label>
-                <input type="text" id="headTeacher" placeholder="ชื่ออาจารย์รับผิดชอบ">
-            </div>
-            <div class="form-group">
-                <label>หัวหน้ากลุ่มงาน:</label>
-                <input type="text" id="headDept" placeholder="ชื่อหัวหน้า">
+                <label>ชื่อหัวหน้าภาค/กลุ่มงาน</label>
+                <input type="text" id="headName" placeholder="">
             </div>
         </div>
 
@@ -269,7 +266,7 @@
 
     <script>
         // 🚩 เปลี่ยนตรงนี้ให้เป็น URL ของ Google Apps Script ของคุณ
-        const API_URL = "https://script.google.com/macros/s/AKfycbyGJZSFcQXxIx4aIxi3rDaQULSE3Tm43tlVHiIyuMep07oK7REfYIAIVc18Fbbo5rRH/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbxH8kYNTl0b1amZeZ4S9qCKHIjcYxz-okb4wFyUCIzE8YM1qk0UIQXWFaXTXPl-WRrp/exec";
 
         document.addEventListener("DOMContentLoaded", () => {
             // เมื่อเปิดหน้าเว็บมา ให้มีหมวดประเมินหลักรอไว้ 1 หมวดแบบคลีนๆ
