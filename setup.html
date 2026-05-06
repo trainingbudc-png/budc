@@ -1,148 +1,289 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>หน้าตั้งค่ารายวิชา (Admin)</title>
     <style>
-        body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; padding: 20px; }
-        .container { max-width: 950px; margin: auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        h2 { border-left: 5px solid #1a73e8; padding-left: 10px; color: #333; margin-top: 30px; }
-        
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .form-group label { font-weight: bold; display: block; margin-bottom: 5px; color: #444; }
-        input[type="text"], input[type="number"], input[type="date"], select {
-            width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
         }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 20px; }
-        th, td { border: 1px solid #ddd; padding: 12px; vertical-align: top; }
-        th { background: #e3f2fd; text-align: center; font-weight: bold; color: #1565c0; }
-        
-        .sub-header { display: flex; gap: 10px; padding: 0 5px; }
-        .sub-row { display: flex; gap: 10px; margin-bottom: 8px; align-items: center; background: #fdfdfd; border: 1px dashed #eee; padding: 5px; border-radius: 5px; }
-        .col-name { flex: 1.5; }
-        .col-score { flex: 1; display: flex; gap: 5px; }
-        
-        .btn-add-cat { background: #1a73e8; color: white; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 20px; }
-        .btn-add-sub { background: #e0e0e0; color: #333; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
-        .btn-delete-cat { background: #ff4d4d; color: white; padding: 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; width: 100%; margin-top: 10px; }
-        .btn-delete-sub { background: none; color: #ff4d4d; border: none; cursor: pointer; font-size: 18px; padding: 0 5px; }
-        .btn-save { background: #28a745; color: white; padding: 15px; width: 100%; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; transition: 0.3s; }
-        
-        button:hover { opacity: 0.8; }
+
+        .container {
+            max-width: 950px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            border-left: 5px solid #1a73e8;
+            padding-left: 10px;
+            color: #333;
+            margin-top: 30px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+            color: #444;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            margin-bottom: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            vertical-align: top;
+        }
+
+        th {
+            background: #e3f2fd;
+            text-align: center;
+            font-weight: bold;
+            color: #1565c0;
+        }
+
+        .sub-header {
+            display: flex;
+            gap: 10px;
+            padding: 0 5px;
+        }
+
+        .sub-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 8px;
+            align-items: center;
+            background: #fdfdfd;
+            border: 1px dashed #eee;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        .col-name {
+            flex: 1.5;
+        }
+
+        .col-score {
+            flex: 1;
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-add-cat {
+            background: #1a73e8;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .btn-add-sub {
+            background: #e0e0e0;
+            color: #333;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .btn-delete-cat {
+            background: #ff4d4d;
+            color: white;
+            padding: 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-delete-sub {
+            background: none;
+            color: #ff4d4d;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 0 5px;
+        }
+
+        .btn-save {
+            background: #28a745;
+            color: white;
+            padding: 15px;
+            width: 100%;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            opacity: 0.8;
+        }
     </style>
 </head>
+
 <body>
 
-<div class="container">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-        <h2 style="margin: 0; color: #333; font-size: 1.5rem;">
-            <span style="color: #1a73e8; font-weight: bold;">|</span> 📋 ข้อมูลรายวิชา
-        </h2>
-        <button type="button" onclick="openCourseHistory()" style="background: #ff9800; color: white; padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: inherit; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            📜 จัดการ / แก้ไขข้อมูลวิชาเดิม
-        </button>
-    </div>
-
-    <div class="form-grid">
-        <div class="form-group">
-            <label>ชื่อรายวิชา / รหัสวิชา:</label>
-            <input type="text" id="courseName" placeholder="เช่น 0101234 สรีรวิทยา">
-        </div>
-        <div class="form-group">
-            <label>กลุ่ม / Section:</label>
-            <input type="text" id="courseGroup" placeholder="เช่น 1 หรือ 2(4)">
-        </div>
-    </div>
-
-    <h2>⚙️ ตั้งค่าเกณฑ์การประเมิน</h2>
-    <table>
-        <thead>
-            <tr>
-                <th width="22%">หมวดการประเมินหลัก</th>
-                <th width="63%">
-                    <div class="sub-header">
-                        <div class="col-name">หัวข้อย่อย</div>
-                        <div class="col-score">รายละเอียด (MAX / MPL%)</div>
-                        <div style="width: 25px;"></div>
-                    </div>
-                </th>
-                <th width="15%">% น้ำหนัก</th>
-            </tr>
-        </thead>
-        <tbody id="criteriaBody">
-        </tbody>
-    </table>
-    
-    <button class="btn-add-cat" onclick="addCategory()">➕ เพิ่มหมวดการประเมินหลัก</button>
-
-    <h2>📅 ตั้งค่ารายละเอียดอื่นๆ</h2>
-    <div class="form-grid">
-        <div class="form-group">
-            <label>อันตรรภาคชั้น (Interval):</label>
-            <input type="number" id="interval" step="0.1" value="3.5">
-        </div>
-        <div class="form-group">
-            <label>กลุ่มงาน:</label>
-            <input type="text" id="department" value="ศัลยกรรม">
-        </div>
-        <div class="form-group">
-            <label>วันที่เริ่ม:</label>
-            <input type="date" id="startDate">
-        </div>
-        <div class="form-group">
-            <label>วันที่สิ้นสุด:</label>
-            <input type="date" id="endDate">
-        </div>
-    </div>
-
-    <h2>👨‍🏫 รายนามอาจารย์</h2>
-    <div class="form-grid">
-        <div class="form-group">
-            <label>อาจารย์ผู้ประเมิน:</label>
-            <input type="text" id="teacher" placeholder="ชื่ออาจารย์">
-        </div>
-        <div class="form-group">
-            <label>อาจารย์รับผิดชอบรายวิชา:</label>
-            <input type="text" id="headTeacher" placeholder="ชื่ออาจารย์รับผิดชอบ">
-        </div>
-        <div class="form-group">
-            <label>หัวหน้ากลุ่มงาน:</label>
-            <input type="text" id="headDept" placeholder="ชื่อหัวหน้า">
-        </div>
-    </div>
-
-    <button class="btn-save" id="btnSaveMain" onclick="saveSetup()">💾 บันทึกการตั้งค่ารายวิชานี้</button>
+    <div class="container">
+        <div style="margin-bottom: 20px;">
+    <a href="index.html" style="text-decoration: none; color: #1a73e8; font-weight: bold; font-size: 16px;">
+        ⬅️ กลับหน้าหลัก (กรอกคะแนน)
+    </a>
 </div>
-
-<div id="courseHistoryModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items: center; justify-content: center;">
-    <div style="background:white; width: 90%; max-width:600px; padding:25px; border-radius:12px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:15px;">
-            <h3 style="color:#ff9800; margin:0;">📜 จัดการข้อมูลรายวิชาในระบบ</h3>
-            <button type="button" onclick="document.getElementById('courseHistoryModal').style.display='none'" style="background:none; border:none; font-size:18px; cursor:pointer;">❌</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h2 style="margin: 0; color: #333; font-size: 1.5rem;">
+                <span style="color: #1a73e8; font-weight: bold;">|</span> 📋 ข้อมูลรายวิชา
+            </h2>
+            <button type="button" onclick="openCourseHistory()"
+                style="background: #ff9800; color: white; padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: inherit; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                📜 จัดการ / แก้ไขข้อมูลวิชาเดิม
+            </button>
         </div>
-        <div id="courseHistoryContainer" style="max-height: 400px; overflow-y: auto;"></div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label>ชื่อรายวิชา / รหัสวิชา:</label>
+                <input type="text" id="courseName" placeholder="เช่น 0101234 สรีรวิทยา">
+            </div>
+            <div class="form-group">
+                <label>กลุ่ม / Section:</label>
+                <input type="text" id="courseGroup" placeholder="เช่น 1 หรือ 2(4)">
+            </div>
+        </div>
+
+        <h2>⚙️ ตั้งค่าเกณฑ์การประเมิน</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th width="22%">หมวดการประเมินหลัก</th>
+                    <th width="63%">
+                        <div class="sub-header">
+                            <div class="col-name">หัวข้อย่อย</div>
+                            <div class="col-score">รายละเอียด (MAX / MPL%)</div>
+                            <div style="width: 25px;"></div>
+                        </div>
+                    </th>
+                    <th width="15%">% น้ำหนัก</th>
+                </tr>
+            </thead>
+            <tbody id="criteriaBody">
+            </tbody>
+        </table>
+
+        <button class="btn-add-cat" onclick="addCategory()">➕ เพิ่มหมวดการประเมินหลัก</button>
+
+        <h2>📅 ตั้งค่ารายละเอียดอื่นๆ</h2>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>อันตรรภาคชั้น (Interval):</label>
+                <input type="number" id="interval" step="0.1" value="3.5">
+            </div>
+            <div class="form-group">
+                <label>กลุ่มงาน:</label>
+                <input type="text" id="department" value="ศัลยกรรม">
+            </div>
+            <div class="form-group">
+                <label>วันที่เริ่ม:</label>
+                <input type="date" id="startDate">
+            </div>
+            <div class="form-group">
+                <label>วันที่สิ้นสุด:</label>
+                <input type="date" id="endDate">
+            </div>
+        </div>
+
+        <h2>👨‍🏫 รายนามอาจารย์</h2>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>อาจารย์ผู้ประเมิน:</label>
+                <input type="text" id="teacher" placeholder="ชื่ออาจารย์">
+            </div>
+            <div class="form-group">
+                <label>อาจารย์รับผิดชอบรายวิชา:</label>
+                <input type="text" id="headTeacher" placeholder="ชื่ออาจารย์รับผิดชอบ">
+            </div>
+            <div class="form-group">
+                <label>หัวหน้ากลุ่มงาน:</label>
+                <input type="text" id="headDept" placeholder="ชื่อหัวหน้า">
+            </div>
+        </div>
+
+        <button class="btn-save" id="btnSaveMain" onclick="saveSetup()">💾 บันทึกการตั้งค่ารายวิชานี้</button>
     </div>
-</div>
 
-<script>
-    // 🚩 เปลี่ยนตรงนี้ให้เป็น URL ของ Google Apps Script ของคุณ
-    const API_URL = "https://script.google.com/macros/s/AKfycbyGJZSFcQXxIx4aIxi3rDaQULSE3Tm43tlVHiIyuMep07oK7REfYIAIVc18Fbbo5rRH/exec";
+    <div id="courseHistoryModal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items: center; justify-content: center;">
+        <div
+            style="background:white; width: 90%; max-width:600px; padding:25px; border-radius:12px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+            <div
+                style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:15px;">
+                <h3 style="color:#ff9800; margin:0;">📜 จัดการข้อมูลรายวิชาในระบบ</h3>
+                <button type="button" onclick="document.getElementById('courseHistoryModal').style.display='none'"
+                    style="background:none; border:none; font-size:18px; cursor:pointer;">❌</button>
+            </div>
+            <div id="courseHistoryContainer" style="max-height: 400px; overflow-y: auto;"></div>
+        </div>
+    </div>
 
-    document.addEventListener("DOMContentLoaded", () => {
-        // เมื่อเปิดหน้าเว็บมา ให้มีหมวดประเมินหลักรอไว้ 1 หมวดแบบคลีนๆ
-        addCategory("MEQ");
-        // เอาฟังก์ชันโหลดรายการวิชาที่เคยโชว์ข้างล่างออกไปแล้ว เพื่อความสวยงาม
-    });
+    <script>
+        // 🚩 เปลี่ยนตรงนี้ให้เป็น URL ของ Google Apps Script ของคุณ
+        const API_URL = "https://script.google.com/macros/s/AKfycbyGJZSFcQXxIx4aIxi3rDaQULSE3Tm43tlVHiIyuMep07oK7REfYIAIVc18Fbbo5rRH/exec";
 
-    // ==========================================
-    // ฟังก์ชันจัดการฟอร์ม (เพิ่ม/ลบ แถว)
-    // ==========================================
-    function addCategory(defaultName = "") {
-        const tbody = document.getElementById('criteriaBody');
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
+        document.addEventListener("DOMContentLoaded", () => {
+            // เมื่อเปิดหน้าเว็บมา ให้มีหมวดประเมินหลักรอไว้ 1 หมวดแบบคลีนๆ
+            addCategory("MEQ");
+            // เอาฟังก์ชันโหลดรายการวิชาที่เคยโชว์ข้างล่างออกไปแล้ว เพื่อความสวยงาม
+        });
+
+        // ==========================================
+        // ฟังก์ชันจัดการฟอร์ม (เพิ่ม/ลบ แถว)
+        // ==========================================
+        function addCategory(defaultName = "") {
+            const tbody = document.getElementById('criteriaBody');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
             <td>
                 <input type="text" class="cat-name" placeholder="ชื่อหมวด (เช่น MEQ)" value="${defaultName}">
                 <button class="btn-delete-cat" onclick="removeCategory(this)">🗑️ ลบหมวดนี้</button>
@@ -155,16 +296,16 @@
                 <input type="number" class="cat-weight" placeholder="น้ำหนัก %">
             </td>
         `;
-        tbody.appendChild(tr);
-        addSubTopicDirectly(tr.querySelector('.sub-container'));
-    }
+            tbody.appendChild(tr);
+            addSubTopicDirectly(tr.querySelector('.sub-container'));
+        }
 
-    function addSubTopic(btn) { addSubTopicDirectly(btn.previousElementSibling); }
+        function addSubTopic(btn) { addSubTopicDirectly(btn.previousElementSibling); }
 
-    function addSubTopicDirectly(container, subName="", max="", mpl="") {
-        const div = document.createElement('div');
-        div.className = 'sub-row';
-        div.innerHTML = `
+        function addSubTopicDirectly(container, subName = "", max = "", mpl = "") {
+            const div = document.createElement('div');
+            div.className = 'sub-row';
+            div.innerHTML = `
             <div class="col-name"><input type="text" class="sub-name" placeholder="ชื่อหัวข้อ" value="${subName}"></div>
             <div class="col-score">
                 <input type="number" class="sub-max" placeholder="MAX" value="${max}">
@@ -172,135 +313,135 @@
             </div>
             <button class="btn-delete-sub" title="ลบ" onclick="removeSubTopic(this)">✕</button>
         `;
-        container.appendChild(div);
-    }
+            container.appendChild(div);
+        }
 
-    function removeCategory(btn) { if(confirm("ลบหมวดนี้?")) btn.closest('tr').remove(); }
-    function removeSubTopic(btn) { btn.closest('.sub-row').remove(); }
+        function removeCategory(btn) { if (confirm("ลบหมวดนี้?")) btn.closest('tr').remove(); }
+        function removeSubTopic(btn) { btn.closest('.sub-row').remove(); }
 
-    // ==========================================
-    // ฟังก์ชันบันทึกข้อมูล
-    // ==========================================
-    async function saveSetup() {
-        const courseName = document.getElementById('courseName').value;
-        if(!courseName) return alert("กรุณากรอกชื่อรายวิชาก่อนบันทึกครับ");
+        // ==========================================
+        // ฟังก์ชันบันทึกข้อมูล
+        // ==========================================
+        async function saveSetup() {
+            const courseName = document.getElementById('courseName').value;
+            if (!courseName) return alert("กรุณากรอกชื่อรายวิชาก่อนบันทึกครับ");
 
-        const btn = document.getElementById('btnSaveMain');
-        btn.innerText = "⏳ กำลังบันทึกข้อมูล...";
-        btn.disabled = true;
+            const btn = document.getElementById('btnSaveMain');
+            btn.innerText = "⏳ กำลังบันทึกข้อมูล...";
+            btn.disabled = true;
 
-        const criteriaData = [];
-        document.querySelectorAll('#criteriaBody tr').forEach(tr => {
-            const catName = tr.querySelector('.cat-name').value;
-            const weight = tr.querySelector('.cat-weight').value;
-            tr.querySelectorAll('.sub-row').forEach(sub => {
-                criteriaData.push({
-                    category: catName, weight: weight,
-                    subName: sub.querySelector('.sub-name').value,
-                    max: sub.querySelector('.sub-max').value,
-                    mpl: sub.querySelector('.sub-mpl').value
+            const criteriaData = [];
+            document.querySelectorAll('#criteriaBody tr').forEach(tr => {
+                const catName = tr.querySelector('.cat-name').value;
+                const weight = tr.querySelector('.cat-weight').value;
+                tr.querySelectorAll('.sub-row').forEach(sub => {
+                    criteriaData.push({
+                        category: catName, weight: weight,
+                        subName: sub.querySelector('.sub-name').value,
+                        max: sub.querySelector('.sub-max').value,
+                        mpl: sub.querySelector('.sub-mpl').value
+                    });
                 });
             });
-        });
 
-        const payload = {
-            action: 'saveSetup',
-            courseName: courseName, courseGroup: document.getElementById('courseGroup').value,
-            interval: document.getElementById('interval').value, department: document.getElementById('department').value,
-            startDate: document.getElementById('startDate').value, endDate: document.getElementById('endDate').value,
-            teacher: document.getElementById('teacher').value, headTeacher: document.getElementById('headTeacher').value,
-            headDept: document.getElementById('headDept').value, criteria: criteriaData
-        };
+            const payload = {
+                action: 'saveSetup',
+                courseName: courseName, courseGroup: document.getElementById('courseGroup').value,
+                interval: document.getElementById('interval').value, department: document.getElementById('department').value,
+                startDate: document.getElementById('startDate').value, endDate: document.getElementById('endDate').value,
+                teacher: document.getElementById('teacher').value, headTeacher: document.getElementById('headTeacher').value,
+                headDept: document.getElementById('headDept').value, criteria: criteriaData
+            };
 
-        try {
-            await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-            alert("✅ บันทึกข้อมูลเรียบร้อยแล้ว!");
-            location.reload(); 
-        } catch (error) {
-            alert("❌ ไม่สามารถเชื่อมต่อกับระบบได้");
-            btn.innerText = "💾 บันทึกการตั้งค่ารายวิชานี้";
-            btn.disabled = false;
-        }
-    }
-
-    // ==========================================
-    // ฟังก์ชันเปิดหน้าต่าง จัดการ/แก้ไข/ลบ รายวิชา (แสดงใน Modal)
-    // ==========================================
-    async function openCourseHistory() {
-        const modal = document.getElementById('courseHistoryModal');
-        const container = document.getElementById('courseHistoryContainer');
-        modal.style.display = 'flex';
-        container.innerHTML = "<p style='text-align:center;'>⏳ กำลังโหลดรายชื่อวิชา...</p>";
-
-        try {
-            const res = await fetch(`${API_URL}?action=getCourses`);
-            const courses = await res.json();
-
-            if (!courses || courses.length === 0) {
-                container.innerHTML = "<p style='text-align:center;'>ยังไม่มีข้อมูลรายวิชาในระบบ</p>";
-                return;
+            try {
+                await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+                alert("✅ บันทึกข้อมูลเรียบร้อยแล้ว!");
+                location.reload();
+            } catch (error) {
+                alert("❌ ไม่สามารถเชื่อมต่อกับระบบได้");
+                btn.innerText = "💾 บันทึกการตั้งค่ารายวิชานี้";
+                btn.disabled = false;
             }
+        }
 
-            let html = `<table style="width:100%; border-collapse:collapse; font-size:15px; margin-top:10px;">
+        // ==========================================
+        // ฟังก์ชันเปิดหน้าต่าง จัดการ/แก้ไข/ลบ รายวิชา (แสดงใน Modal)
+        // ==========================================
+        async function openCourseHistory() {
+            const modal = document.getElementById('courseHistoryModal');
+            const container = document.getElementById('courseHistoryContainer');
+            modal.style.display = 'flex';
+            container.innerHTML = "<p style='text-align:center;'>⏳ กำลังโหลดรายชื่อวิชา...</p>";
+
+            try {
+                const res = await fetch(`${API_URL}?action=getCourses`);
+                const courses = await res.json();
+
+                if (!courses || courses.length === 0) {
+                    container.innerHTML = "<p style='text-align:center;'>ยังไม่มีข้อมูลรายวิชาในระบบ</p>";
+                    return;
+                }
+
+                let html = `<table style="width:100%; border-collapse:collapse; font-size:15px; margin-top:10px;">
                 <tr style="background:#f1f3f4;">
                     <th style="padding:10px;text-align:left;">ชื่อรายวิชา</th>
                     <th style="padding:10px;text-align:center;width:160px;">จัดการ</th>
                 </tr>`;
-            courses.forEach(c => {
-                html += `<tr>
+                courses.forEach(c => {
+                    html += `<tr>
                     <td style="padding:10px;border-bottom:1px solid #ddd;font-weight:bold;">${c}</td>
                     <td style="padding:10px;text-align:center;border-bottom:1px solid #ddd; display:flex; gap:10px; justify-content:center;">
                         <button onclick="editCourseSetup('${c}')" style="background:#1a73e8;color:white;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;">✏️ แก้ไข</button>
                         <button onclick="deleteCourse('${c}')" style="background:#ff4d4d;color:white;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;">🗑️ ลบ</button>
                     </td>
                 </tr>`;
-            });
-            html += `</table>`;
-            container.innerHTML = html;
-        } catch(e) { 
-            container.innerHTML = "<p style='text-align:center; color:red;'>❌ โหลดข้อมูลล้มเหลว</p>"; 
+                });
+                html += `</table>`;
+                container.innerHTML = html;
+            } catch (e) {
+                container.innerHTML = "<p style='text-align:center; color:red;'>❌ โหลดข้อมูลล้มเหลว</p>";
+            }
         }
-    }
 
-    // ==========================================
-    // ฟังก์ชันดึงข้อมูล "ทุกช่อง" มาใส่ฟอร์มเพื่อแก้ไข
-    // ==========================================
-    async function editCourseSetup(courseName) {
-        document.getElementById('courseHistoryModal').style.display = 'none';
-        const btnSave = document.getElementById('btnSaveMain');
-        btnSave.innerText = "⏳ กำลังดึงข้อมูล...";
-        
-        try {
-            const res = await fetch(`${API_URL}?action=getCourseSetup&courseName=${encodeURIComponent(courseName)}`);
-            const data = await res.json();
+        // ==========================================
+        // ฟังก์ชันดึงข้อมูล "ทุกช่อง" มาใส่ฟอร์มเพื่อแก้ไข
+        // ==========================================
+        async function editCourseSetup(courseName) {
+            document.getElementById('courseHistoryModal').style.display = 'none';
+            const btnSave = document.getElementById('btnSaveMain');
+            btnSave.innerText = "⏳ กำลังดึงข้อมูล...";
 
-            // 1. เติมข้อมูลทั่วไป (เติมได้ทุกช่องแน่นอน 100%)
-            document.getElementById('courseName').value = data.courseName || "";
-            document.getElementById('courseGroup').value = data.courseGroup || "";
-            document.getElementById('interval').value = data.interval || "";
-            document.getElementById('department').value = data.department || "";
-            document.getElementById('startDate').value = data.startDate || "";
-            document.getElementById('endDate').value = data.endDate || "";
-            document.getElementById('teacher').value = data.teacher || "";
-            document.getElementById('headTeacher').value = data.headTeacher || "";
-            document.getElementById('headDept').value = data.headDept || "";
+            try {
+                const res = await fetch(`${API_URL}?action=getCourseSetup&courseName=${encodeURIComponent(courseName)}`);
+                const data = await res.json();
 
-            // 2. เติมตารางเกณฑ์คะแนน (สร้างแถวตามข้อมูลเดิมเป๊ะๆ)
-            const tbody = document.getElementById('criteriaBody');
-            tbody.innerHTML = ""; 
+                // 1. เติมข้อมูลทั่วไป (เติมได้ทุกช่องแน่นอน 100%)
+                document.getElementById('courseName').value = data.courseName || "";
+                document.getElementById('courseGroup').value = data.courseGroup || "";
+                document.getElementById('interval').value = data.interval || "";
+                document.getElementById('department').value = data.department || "";
+                document.getElementById('startDate').value = data.startDate || "";
+                document.getElementById('endDate').value = data.endDate || "";
+                document.getElementById('teacher').value = data.teacher || "";
+                document.getElementById('headTeacher').value = data.headTeacher || "";
+                document.getElementById('headDept').value = data.headDept || "";
 
-            let catMap = {};
-            data.criteria.forEach(c => {
-                if(!catMap[c.category]) catMap[c.category] = { weight: c.weight, subs: [] };
-                catMap[c.category].subs.push({ name: c.subName, max: c.max, mpl: c.mpl });
-            });
+                // 2. เติมตารางเกณฑ์คะแนน (สร้างแถวตามข้อมูลเดิมเป๊ะๆ)
+                const tbody = document.getElementById('criteriaBody');
+                tbody.innerHTML = "";
 
-            for (let cat in catMap) {
-                const tr = document.createElement('tr');
-                let subsHtml = "";
-                
-                catMap[cat].subs.forEach(s => {
-                    subsHtml += `
+                let catMap = {};
+                data.criteria.forEach(c => {
+                    if (!catMap[c.category]) catMap[c.category] = { weight: c.weight, subs: [] };
+                    catMap[c.category].subs.push({ name: c.subName, max: c.max, mpl: c.mpl });
+                });
+
+                for (let cat in catMap) {
+                    const tr = document.createElement('tr');
+                    let subsHtml = "";
+
+                    catMap[cat].subs.forEach(s => {
+                        subsHtml += `
                         <div class="sub-row">
                             <div class="col-name"><input type="text" class="sub-name" value="${s.name}"></div>
                             <div class="col-score">
@@ -310,9 +451,9 @@
                             <button class="btn-delete-sub" onclick="removeSubTopic(this)">✕</button>
                         </div>
                     `;
-                });
+                    });
 
-                tr.innerHTML = `
+                    tr.innerHTML = `
                     <td>
                         <input type="text" class="cat-name" value="${cat}">
                         <button class="btn-delete-cat" onclick="removeCategory(this)">🗑️ ลบหมวดนี้</button>
@@ -325,30 +466,31 @@
                         <input type="number" class="cat-weight" value="${catMap[cat].weight}">
                     </td>
                 `;
-                tbody.appendChild(tr);
+                    tbody.appendChild(tr);
+                }
+
+                btnSave.innerText = "💾 บันทึกการแก้ไข (ทับข้อมูลเดิม)";
+                alert(`✅ ดึงข้อมูลรายวิชา "${courseName}" มาครบทุกช่องแล้ว แก้ไขข้อมูลเสร็จแล้วกดบันทึกทับได้เลยครับ!`);
+                window.scrollTo(0, 0);
+
+            } catch (e) {
+                alert("❌ ไม่สามารถดึงข้อมูลได้");
+                btnSave.innerText = "💾 บันทึกการตั้งค่ารายวิชานี้";
             }
-
-            btnSave.innerText = "💾 บันทึกการแก้ไข (ทับข้อมูลเดิม)";
-            alert(`✅ ดึงข้อมูลรายวิชา "${courseName}" มาครบทุกช่องแล้ว แก้ไขข้อมูลเสร็จแล้วกดบันทึกทับได้เลยครับ!`);
-            window.scrollTo(0,0);
-
-        } catch(e) {
-            alert("❌ ไม่สามารถดึงข้อมูลได้");
-            btnSave.innerText = "💾 บันทึกการตั้งค่ารายวิชานี้";
         }
-    }
 
-    // ==========================================
-    // ฟังก์ชันลบรายวิชาจากป๊อปอัป Modal
-    // ==========================================
-    async function deleteCourse(name) {
-        if(!confirm(`⚠️ ยืนยันการลบวิชา "${name}" ใช่ไหม?\n(ข้อมูลเกณฑ์คะแนนของวิชานี้จะถูกลบออกทั้งหมด)`)) return;
-        
-        document.getElementById('courseHistoryContainer').innerHTML = "<p style='text-align:center;'>⏳ กำลังลบข้อมูล...</p>";
-        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteCourse', courseName: name }) });
-        alert(`🗑️ ลบวิชา ${name} เรียบร้อยแล้ว`);
-        location.reload(); 
-    }
-</script>
+        // ==========================================
+        // ฟังก์ชันลบรายวิชาจากป๊อปอัป Modal
+        // ==========================================
+        async function deleteCourse(name) {
+            if (!confirm(`⚠️ ยืนยันการลบวิชา "${name}" ใช่ไหม?\n(ข้อมูลเกณฑ์คะแนนของวิชานี้จะถูกลบออกทั้งหมด)`)) return;
+
+            document.getElementById('courseHistoryContainer').innerHTML = "<p style='text-align:center;'>⏳ กำลังลบข้อมูล...</p>";
+            await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteCourse', courseName: name }) });
+            alert(`🗑️ ลบวิชา ${name} เรียบร้อยแล้ว`);
+            location.reload();
+        }
+    </script>
 </body>
+
 </html>

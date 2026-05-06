@@ -1,204 +1,330 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบบันทึกคะแนน - Ver.อัปเกรดความสวยงาม</title>
+    <title>ระบบบันทึกคะแนน</title>
     <style>
-        body { font-family: 'Sarabun', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
-        .container { max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .step { display: none; } 
-        .step.active { display: block; }
-        .info-header { background: #e3f2fd; padding: 10px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; color: #1565c0; line-height: 1.6; }
-        h2 { color: #333; font-size: 1.2rem; margin-bottom: 20px; border-left: 5px solid #1a73e8; padding-left: 10px; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; color: #555; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px; box-sizing: border-box; font-size: 16px; }
-        input[readonly] { background-color: #f8f9fa; color: #1a73e8; font-weight: bold; border: 1px dashed #abc; }
-        
-        /* แก้ไขส่วนกรอกคะแนนให้สวยงาม (ข้อความซ้าย ช่องขวา) */
-        .score-row { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            padding: 12px 10px; 
-            border-bottom: 1px solid #eee; 
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .step {
+            display: none;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        .info-header {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #1565c0;
+            line-height: 1.6;
+        }
+
+        h2 {
+            color: #333;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            border-left: 5px solid #1a73e8;
+            padding-left: 10px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        input[readonly] {
+            background-color: #f8f9fa;
+            color: #1a73e8;
+            font-weight: bold;
+            border: 1px dashed #abc;
+        }
+
+        .score-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 10px;
+            border-bottom: 1px solid #eee;
             background: #fff;
         }
-        .score-label { flex: 1; font-size: 14px; color: #333; margin-right: 10px; }
-        .score-input-box { width: 80px !important; margin-bottom: 0 !important; text-align: center; border-color: #1a73e8; }
-        
-        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
-        button { flex: 1; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; }
-        .btn-next { background: #1a73e8; color: white; }
-        .btn-prev { background: #eee; color: #666; }
-        .btn-save { background: #28a745; color: white; }
-        .preview-box { border: 1px solid #eee; padding: 5px; border-radius: 8px; background: #fafafa; margin-bottom: 10px; }
+
+        .score-label {
+            flex: 1;
+            font-size: 14px;
+            color: #333;
+            margin-right: 10px;
+        }
+
+        .score-input-box {
+            width: 80px !important;
+            margin-bottom: 0 !important;
+            text-align: center;
+            border-color: #1a73e8;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        .btn-next {
+            background: #1a73e8;
+            color: white;
+        }
+
+        .btn-prev {
+            background: #eee;
+            color: #666;
+        }
+
+        .btn-save {
+            background: #28a745;
+            color: white;
+        }
+
+        .preview-box {
+            border: 1px solid #eee;
+            padding: 5px;
+            border-radius: 8px;
+            background: #fafafa;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
+
 <body>
 
-<div class="container">
-    <div id="step1" class="step active">
-        <h2>หน้า 1: เลือกรายวิชา</h2>
-        <label>รายวิชา:</label>
-        <select id="course" onchange="autoFillData()"><option value="">-- กำลังโหลด... --</option></select>
-        <button class="btn-next" onclick="nextStep(2)">ถัดไป</button>
-    </div>
+    <div class="container">
+        <div style="display: flex; gap: 5px; margin-bottom: 20px; flex-wrap: wrap;">
+            <a href="setup.html"
+                style="flex: 1; text-align: center; padding: 10px; background: #6c757d; color: white; text-decoration: none; border-radius: 5px; font-size: 14px; font-weight: bold;">⚙️
+                ตั้งค่าวิชา</a>
+            <a href="dashboard.html"
+                style="flex: 1; text-align: center; padding: 10px; background: #17a2b8; color: white; text-decoration: none; border-radius: 5px; font-size: 14px; font-weight: bold;">📊
+                คะแนนรวม</a>
+            <a href="report.html"
+                style="flex: 1; text-align: center; padding: 10px; background: #ffc107; color: black; text-decoration: none; border-radius: 5px; font-size: 14px; font-weight: bold;">🎓
+                ตัดเกรด</a>
+        </div>
 
-    <div id="step2" class="step">
-        <div id="info2" class="info-header"></div>
-        <h2>หน้า 2: กลุ่มนิสิต</h2>
-        <input type="text" id="group" placeholder="..." readonly>
-        <div class="btn-group">
-            <button class="btn-prev" onclick="prevStep(1)">ย้อนกลับ</button>
-            <button class="btn-next" onclick="nextStep(3)">ถัดไป</button>
+        <div id="step1" class="step active">
+            <h2>หน้า 1: เลือกรายวิชา</h2>
+            <label>รายวิชา:</label>
+            <select id="course" onchange="autoFillData()">
+                <option value="">-- กำลังโหลด... --</option>
+            </select>
+            <button class="btn-next" onclick="nextStep(2)">ถัดไป</button>
+        </div>
+
+        <div id="step2" class="step">
+            <div id="info2" class="info-header"></div>
+            <h2>หน้า 2: กลุ่มนิสิต</h2>
+            <input type="text" id="group" placeholder="..." readonly>
+            <div class="btn-group">
+                <button class="btn-prev" onclick="prevStep(1)">ย้อนกลับ</button>
+                <button class="btn-next" onclick="nextStep(3)">ถัดไป</button>
+            </div>
+        </div>
+
+        <div id="step3" class="step">
+            <div id="info3" class="info-header"></div>
+            <h2>หน้า 3: ข้อมูลนิสิต</h2>
+            <label>รหัสนิสิต:</label>
+            <input type="number" id="studentId" placeholder="64xxxxxx" oninput="updateSummary()">
+            <label>ชื่อ-นามสกุล:</label>
+            <input type="text" id="studentName" placeholder="นาย/นางสาว..." oninput="updateSummary()">
+            <div class="btn-group">
+                <button class="btn-prev" onclick="prevStep(2)">ย้อนกลับ</button>
+                <button class="btn-next" onclick="nextStep(4)">ถัดไป</button>
+            </div>
+        </div>
+
+        <div id="step4" class="step">
+            <div id="info4" class="info-header"></div>
+            <h2>หน้า 4: กรอกคะแนนรายข้อ</h2>
+            <div id="criteriaList" class="preview-box">กำลังโหลดเกณฑ์...</div>
+            <div class="btn-group">
+                <button class="btn-prev" onclick="prevStep(3)">ย้อนกลับ</button>
+                <button class="btn-next" onclick="nextStep(8)">ไปหน้าสุดท้าย</button>
+            </div>
+        </div>
+
+        <div id="step8" class="step">
+            <div id="info8" class="info-header"></div>
+            <h2>หน้าสุดท้าย: บันทึกข้อมูล</h2>
+            <label>กลุ่มงาน:</label>
+            <input type="text" id="dept" placeholder="..." readonly>
+            <label>อาจารย์ผู้ประเมิน:</label>
+            <input type="text" id="teacher" placeholder="..." readonly>
+            <div class="btn-group">
+                <button class="btn-prev" onclick="prevStep(4)">ย้อนกลับ</button>
+                <button class="btn-save" onclick="submitData()">💾 บันทึกคะแนน</button>
+            </div>
         </div>
     </div>
 
-    <div id="step3" class="step">
-        <div id="info3" class="info-header"></div>
-        <h2>หน้า 3: ข้อมูลนิสิต</h2>
-        <label>รหัสนิสิต:</label>
-        <input type="number" id="studentId" placeholder="64xxxxxx" oninput="updateSummary()">
-        <label>ชื่อ-นามสกุล:</label>
-        <input type="text" id="studentName" placeholder="นาย/นางสาว..." oninput="updateSummary()">
-        <div class="btn-group">
-            <button class="btn-prev" onclick="prevStep(2)">ย้อนกลับ</button>
-            <button class="btn-next" onclick="nextStep(4)">ถัดไป</button>
-        </div>
-    </div>
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbyGJZSFcQXxIx4aIxi3rDaQULSE3Tm43tlVHiIyuMep07oK7REfYIAIVc18Fbbo5rRH/exec";
 
-    <div id="step4" class="step">
-        <div id="info4" class="info-header"></div>
-        <h2>หน้า 4: กรอกคะแนนรายข้อ</h2>
-        <div id="criteriaList" class="preview-box">กำลังโหลดเกณฑ์...</div>
-        <div class="btn-group">
-            <button class="btn-prev" onclick="prevStep(3)">ย้อนกลับ</button>
-            <button class="btn-next" onclick="nextStep(8)">ไปหน้าสุดท้าย</button>
-        </div>
-    </div>
-
-    <div id="step8" class="step">
-        <div id="info8" class="info-header"></div>
-        <h2>หน้าสุดท้าย: บันทึกข้อมูล</h2>
-        <label>กลุ่มงาน:</label>
-        <input type="text" id="dept" placeholder="..." readonly>
-        <label>อาจารย์ผู้ประเมิน:</label>
-        <input type="text" id="teacher" placeholder="..." readonly>
-        <div class="btn-group">
-            <button class="btn-prev" onclick="prevStep(4)">ย้อนกลับ</button>
-            <button class="btn-save" onclick="submitData()">💾 บันทึกคะแนน</button>
-        </div>
-    </div>
-</div>
-
-<script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbyGJZSFcQXxIx4aIxi3rDaQULSE3Tm43tlVHiIyuMep07oK7REfYIAIVc18Fbbo5rRH/exec"; 
-
-    // ฟังก์ชันดึงข้อมูลอัตโนมัติ
-    async function autoFillData() {
-        const course = document.getElementById('course').value;
-        if (!course) return;
-
-        try {
-            const res = await fetch(`${API_URL}?action=getCourseSetup&courseName=${encodeURIComponent(course)}`);
-            const data = await res.json();
-            
-            if (data) {
-                // หยอดข้อมูลใส่ช่อง Input
-                document.getElementById('group').value = data.courseGroup || '-';
-                document.getElementById('dept').value = data.department || '-';
-                document.getElementById('teacher').value = data.teacher || '-';
-                
-                // หลังจากหยอดเสร็จ ให้สั่งอัปเดตตัวหนังสือ Summary ทันที
+        // ฟังก์ชันดึงข้อมูลกลุ่ม/อาจารย์อัตโนมัติ
+        async function autoFillData() {
+            const course = document.getElementById('course').value;
+            if (!course) {
+                document.getElementById('group').value = '';
+                document.getElementById('dept').value = '';
+                document.getElementById('teacher').value = '';
                 updateSummary();
+                return;
             }
-        } catch (e) {
-            console.error("Auto-fill error:", e);
+
+            try {
+                const res = await fetch(`${API_URL}?action=getCourseSetup&courseName=${encodeURIComponent(course)}`);
+                const data = await res.json();
+
+                if (data) {
+                    document.getElementById('group').value = data.courseGroup || '-';
+                    document.getElementById('dept').value = data.department || '-';
+                    document.getElementById('teacher').value = data.teacher || '-';
+                    updateSummary();
+                }
+            } catch (e) {
+                console.error("Auto-fill error:", e);
+            }
         }
-    }
 
-    function nextStep(step) {
-        if(step === 2 && !document.getElementById('course').value) return alert('เลือกวิชาด้วยจ้า');
-        if(step === 4) loadCriteria();
-        document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-        document.getElementById('step' + step).classList.add('active');
-        updateSummary();
-    }
+        function nextStep(step) {
+            if (step === 2 && !document.getElementById('course').value) return alert('กรุณาเลือกรายวิชาก่อนค่ะ');
+            if (step === 4) loadCriteria();
 
-    function prevStep(step) {
-        document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-        document.getElementById('step' + step).classList.add('active');
-    }
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            const targetStep = document.getElementById('step' + step);
+            if (targetStep) {
+                targetStep.classList.add('active');
+            } else {
+                console.error("หาหน้าไม่เจอ: step" + step);
+            }
+            updateSummary();
+        }
 
-    function updateSummary() {
-        const course = document.getElementById('course').value || '-';
-        const group = document.getElementById('group').value || '-';
-        const sid = document.getElementById('studentId').value || '...';
-        const sname = document.getElementById('studentName').value || '...';
-        
-        const txt = `<b>วิชา:</b> ${course} | <b>กลุ่ม:</b> ${group}<br><b>นิสิต:</b> ${sid} ${sname}`;
-        [2,3,4,8].forEach(i => { if(document.getElementById('info'+i)) document.getElementById('info'+i).innerHTML = txt; });
-    }
+        function prevStep(step) {
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.getElementById('step' + step).classList.add('active');
+        }
 
-    async function loadCriteria() {
-        const course = document.getElementById('course').value;
-        document.getElementById('criteriaList').innerHTML = "⏳ กำลังโหลด...";
-        try {
-            const res = await fetch(`${API_URL}?action=getCriteria&course=${encodeURIComponent(course)}`);
-            const data = await res.json();
-            let html = "";
-            data.forEach((c, i) => {
-                if(Number(c.max) === 0) {
-                    html += `<div style="background:#e9ecef; padding:8px; margin-top:10px; font-weight:bold; border-radius:5px;">📍 ${c.label}</div>`;
-                } else {
-                    let key = `${c.category}_${c.label}_${i+1}`;
-                    // ปรับโครงสร้าง HTML ตรงนี้ให้ Label อยู่ซ้าย Input อยู่ขวา
-                    html += `
+        function updateSummary() {
+            const course = document.getElementById('course').value || '-';
+            const group = document.getElementById('group') ? document.getElementById('group').value : '-';
+            const sid = document.getElementById('studentId') ? document.getElementById('studentId').value : '...';
+            const sname = document.getElementById('studentName') ? document.getElementById('studentName').value : '...';
+
+            const txt = `<b>วิชา:</b> ${course} | <b>กลุ่ม:</b> ${group}<br><b>นิสิต:</b> ${sid} ${sname}`;
+            [2, 3, 4, 8].forEach(i => { if (document.getElementById('info' + i)) document.getElementById('info' + i).innerHTML = txt; });
+        }
+
+        async function loadCriteria() {
+            const course = document.getElementById('course').value;
+            document.getElementById('criteriaList').innerHTML = "⏳ กำลังโหลดเกณฑ์คะแนน...";
+            try {
+                const res = await fetch(`${API_URL}?action=getCriteria&course=${encodeURIComponent(course)}`);
+                const data = await res.json();
+                let html = "";
+                data.forEach((c, i) => {
+                    if (Number(c.max) === 0) {
+                        html += `<div style="background:#e9ecef; padding:8px; margin-top:10px; font-weight:bold; border-radius:5px;">📍 ${c.label}</div>`;
+                    } else {
+                        let key = `${c.category}_${c.label}_${i + 1}`;
+                        html += `
                     <div class="score-row">
                         <div class="score-label">${c.label} <small style="color:#888;">(เต็ม ${c.max})</small></div>
                         <input type="number" class="score-input score-input-box" data-topic="${key}" max="${c.max}" placeholder="0">
                     </div>`;
-                }
+                    }
+                });
+                document.getElementById('criteriaList').innerHTML = html;
+            } catch (e) { document.getElementById('criteriaList').innerHTML = "❌ เกิดข้อผิดพลาดในการโหลดเกณฑ์"; }
+        }
+
+        async function submitData() {
+            const btn = document.querySelector('.btn-save');
+            btn.disabled = true; btn.innerText = "⏳ กำลังบันทึกข้อมูล...";
+
+            let scores = {};
+            document.querySelectorAll('.score-input').forEach(input => {
+                scores[input.getAttribute('data-topic')] = input.value || "0";
             });
-            document.getElementById('criteriaList').innerHTML = html;
-        } catch (e) { document.getElementById('criteriaList').innerHTML = "❌ โหลดพลาด"; }
-    }
 
-    async function submitData() {
-        const btn = document.querySelector('.btn-save');
-        btn.disabled = true; btn.innerText = "⏳ กำลังบันทึก...";
-        
-        let scores = {};
-        document.querySelectorAll('.score-input').forEach(input => {
-            scores[input.getAttribute('data-topic')] = input.value || "0";
-        });
+            const payload = {
+                action: 'saveScore',
+                course: document.getElementById('course').value,
+                group: document.getElementById('group').value,
+                studentId: document.getElementById('studentId').value,
+                studentName: document.getElementById('studentName').value,
+                teacher: document.getElementById('teacher').value,
+                scores: scores
+            };
 
-        const payload = {
-            action: 'saveScore',
-            course: document.getElementById('course').value,
-            group: document.getElementById('group').value,
-            studentId: document.getElementById('studentId').value,
-            studentName: document.getElementById('studentName').value,
-            teacher: document.getElementById('teacher').value,
-            scores: scores
+            try {
+                await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+                alert('✅ บันทึกคะแนนสำเร็จ!');
+                location.reload();
+            } catch (e) { alert('❌ ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่'); btn.disabled = false; btn.innerText = "💾 บันทึกคะแนน"; }
+        }
+
+        window.onload = async () => {
+            try {
+                const res = await fetch(`${API_URL}?action=getCourses`);
+                const courses = await res.json();
+                const sel = document.getElementById('course');
+                sel.innerHTML = '<option value="">-- เลือกรายวิชา --</option>' + courses.map(c => `<option value="${c}">${c}</option>`).join('');
+            } catch (e) { console.error("Load courses error:", e); }
         };
-
-        try {
-            await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-            alert('✅ บันทึกสำเร็จ!');
-            location.reload();
-        } catch (e) { alert('❌ พลาดจ้า'); btn.disabled = false; btn.innerText = "💾 บันทึกคะแนน"; }
-    }
-
-    window.onload = async () => {
-        try {
-            const res = await fetch(`${API_URL}?action=getCourses`);
-            const courses = await res.json();
-            const sel = document.getElementById('course');
-            sel.innerHTML = '<option value="">-- เลือกวิชา --</option>' + courses.map(c => `<option value="${c}">${c}</option>`).join('');
-        } catch (e) { console.error("Load courses error:", e); }
-    };
-</script>
+    </script>
 </body>
+
 </html>
