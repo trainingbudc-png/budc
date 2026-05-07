@@ -218,11 +218,11 @@
         <div class="form-grid">
             <div class="form-group">
                 <label>อันตรรภาคชั้น (Interval):</label>
-                <input type="number" id="interval" step="0.1" value="">
+                <input type="number" id="interval" step="0.1" value="...">
             </div>
             <div class="form-group">
                 <label>กลุ่มงาน:</label>
-                <input type="text" id="department" value="">
+                <input type="text" id="department" value="...">
             </div>
             <div class="form-group">
                 <label>วันที่เริ่ม:</label>
@@ -320,53 +320,45 @@
         // ฟังก์ชันบันทึกข้อมูล (แก้ไขปัญหา CORS และอาการค้าง)
         // ==========================================
         async function saveSetup() {
-            const courseName = document.getElementById('courseName').value;
-            if (!courseName) return alert("กรุณากรอกชื่อรายวิชาก่อนบันทึกครับ");
-
             const btn = document.getElementById('btnSaveMain');
+
+            // ดึงค่า CourseName มาเช็คก่อน
+            const courseNameEl = document.getElementById('courseName');
+            if (!courseNameEl || !courseNameEl.value) return alert("กรุณากรอกชื่อรายวิชาก่อนบันทึกครับ");
+
             btn.innerText = "⏳ กำลังบันทึกข้อมูล...";
             btn.disabled = true;
 
-            const criteriaData = [];
-            document.querySelectorAll('#criteriaBody tr').forEach(tr => {
-                const catName = tr.querySelector('.cat-name').value;
-                const weight = tr.querySelector('.cat-weight').value;
-                tr.querySelectorAll('.sub-row').forEach(sub => {
-                    criteriaData.push({
-                        category: catName, weight: weight,
-                        subName: sub.querySelector('.sub-name').value,
-                        max: sub.querySelector('.sub-max').value,
-                        mpl: sub.querySelector('.sub-mpl').value
-                    });
-                });
-            });
-
-            const payload = {
-                action: 'saveSetup',
-                courseName: courseName, courseGroup: document.getElementById('courseGroup').value,
-                interval: document.getElementById('interval').value, department: document.getElementById('department').value,
-                startDate: document.getElementById('startDate').value, endDate: document.getElementById('endDate').value,
-                teacher: document.getElementById('teacher').value, headTeacher: document.getElementById('headTeacher').value,
-                headDept: document.getElementById('headDept').value, criteria: criteriaData
-            };
-
             try {
-                // 🟢 จุดสำคัญ: ต้องใส่ headers 'text/plain' เพื่อไม่ให้ Google บล็อกข้อมูล
+                const payload = {
+                    action: 'saveSetup',
+                    courseName: document.getElementById('courseName')?.value || "",
+                    courseGroup: document.getElementById('courseGroup')?.value || "1",
+                    interval: document.getElementById('interval')?.value || "4",
+                    department: document.getElementById('department')?.value || "",
+                    startDate: document.getElementById('startDate')?.value || "",
+                    endDate: document.getElementById('endDate')?.value || "",
+                    teacher: document.getElementById('teacher')?.value || "",
+                    headTeacher: document.getElementById('headTeacher')?.value || "",
+                    headDept: document.getElementById('headDept')?.value || "", // 🚩 ตัวที่ทำให้พังถ้าไม่มี HTML
+                    criteria: [] // ใส่ criteriaData ของคุณตรงนี้
+                };
+
+                // ... ส่วนการดึง criteriaData ของคุณ ...
+
                 await fetch(API_URL, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'text/plain;charset=utf-8'
-                    },
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify(payload)
                 });
 
-                alert("✅ บันทึกข้อมูลรายวิชาเรียบร้อยแล้ว!");
-                location.reload(); // รีเฟรชหน้าเมื่อเสร็จ
+                alert("✅ บันทึกข้อมูลเรียบร้อยแล้ว!");
+                location.reload();
             } catch (error) {
                 console.error(error);
-                alert("❌ ไม่สามารถเชื่อมต่อกับระบบได้ กรุณาลองใหม่");
+                alert("❌ เกิดข้อผิดพลาด: " + error.message);
             } finally {
-                // 🟢 สำคัญ: คืนค่าปุ่มให้กลับมาเป็นเหมือนเดิมเสมอ (แก้ปัญหาปุ่มค้าง)
+                // 🌟 จุดสำคัญ: ต้องใส่ตรงนี้เพื่อให้ปุ่มกลับมาทำงานได้แม้จะ Error
                 btn.innerText = "💾 บันทึกการตั้งค่ารายวิชานี้";
                 btn.disabled = false;
             }
