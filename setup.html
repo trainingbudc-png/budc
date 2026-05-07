@@ -317,56 +317,60 @@
         function removeSubTopic(btn) { btn.closest('.sub-row').remove(); }
 
         // ==========================================
-        // ฟังก์ชันบันทึกข้อมูล
+        // ฟังก์ชันบันทึกข้อมูล (แก้ไขปัญหา CORS และอาการค้าง)
         // ==========================================
         async function saveSetup() {
-            const btnSave = document.getElementById('btnSave');
-            btnSave.innerText = "⏳ กำลังบันทึกข้อมูล...";
-            btnSave.disabled = true;
+            const courseName = document.getElementById('courseName').value;
+            if (!courseName) return alert("กรุณากรอกชื่อรายวิชาก่อนบันทึกครับ");
+
+            const btn = document.getElementById('btnSaveMain');
+            btn.innerText = "⏳ กำลังบันทึกข้อมูล...";
+            btn.disabled = true;
+
+            const criteriaData = [];
+            document.querySelectorAll('#criteriaBody tr').forEach(tr => {
+                const catName = tr.querySelector('.cat-name').value;
+                const weight = tr.querySelector('.cat-weight').value;
+                tr.querySelectorAll('.sub-row').forEach(sub => {
+                    criteriaData.push({
+                        category: catName, weight: weight,
+                        subName: sub.querySelector('.sub-name').value,
+                        max: sub.querySelector('.sub-max').value,
+                        mpl: sub.querySelector('.sub-mpl').value
+                    });
+                });
+            });
+
+            const payload = {
+                action: 'saveSetup',
+                courseName: courseName, courseGroup: document.getElementById('courseGroup').value,
+                interval: document.getElementById('interval').value, department: document.getElementById('department').value,
+                startDate: document.getElementById('startDate').value, endDate: document.getElementById('endDate').value,
+                teacher: document.getElementById('teacher').value, headTeacher: document.getElementById('headTeacher').value,
+                headDept: document.getElementById('headDept').value, criteria: criteriaData
+            };
 
             try {
-                // --- 🔍 จุดที่ต้องเช็ค: ID ใน () ต้องตรงกับใน HTML ของคุณเป๊ะๆ ---
-                const getVal = (id) => {
-                    const el = document.getElementById(id);
-                    if (!el) {
-                        console.error(`❌ หา ID "${id}" ไม่เจอในหน้า HTML!`);
-                        return ""; // ถ้าหาไม่เจอ ให้ส่งค่าว่างแทน โค้ดจะได้ไม่พัง
-                    }
-                    return el.value;
-                };
-
-                const payload = {
-                    action: 'saveSetup',
-                    courseName: getVal('courseName'),
-                    courseGroup: getVal('courseGroup'),
-                    courseInterval: getVal('courseInterval'),
-                    courseDept: getVal('courseDept'),
-                    startDate: getVal('startDate'),
-                    endDate: getVal('endDate'),
-                    teacherName: getVal('teacherName'),
-                    headName: getVal('headName') // <--- ตัวนี้มักจะลืมสร้างช่อง input ไว้
-                };
-
-                // ส่งข้อมูลไปที่ Google Apps Script
-                const res = await fetch(API_URL, {
+                // 🟢 จุดสำคัญ: ต้องใส่ headers 'text/plain' เพื่อไม่ให้ Google บล็อกข้อมูล
+                await fetch(API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8'
+                    },
                     body: JSON.stringify(payload)
                 });
 
-                const result = await res.json();
-                alert('✅ บันทึกเกณฑ์คะแนนเรียบร้อยแล้ว!');
-
-            } catch (e) {
-                console.error("Error:", e);
-                alert('❌ บันทึกไม่สำเร็จ: ' + e.message);
+                alert("✅ บันทึกข้อมูลรายวิชาเรียบร้อยแล้ว!");
+                location.reload(); // รีเฟรชหน้าเมื่อเสร็จ
+            } catch (error) {
+                console.error(error);
+                alert("❌ ไม่สามารถเชื่อมต่อกับระบบได้ กรุณาลองใหม่");
             } finally {
-                // 🌟 สำคัญมาก: ไม่ว่าจะสำเร็จหรือพลาด ต้องคืนค่าปุ่มให้กลับมาปกติ
-                btnSave.innerText = "💾 บันทึกการตั้งค่ารายวิชานี้";
-                btnSave.disabled = false;
+                // 🟢 สำคัญ: คืนค่าปุ่มให้กลับมาเป็นเหมือนเดิมเสมอ (แก้ปัญหาปุ่มค้าง)
+                btn.innerText = "💾 บันทึกการตั้งค่ารายวิชานี้";
+                btn.disabled = false;
             }
         }
-
         // ==========================================
         // ฟังก์ชันเปิดหน้าต่าง จัดการ/แก้ไข/ลบ รายวิชา (แสดงใน Modal)
         // ==========================================
