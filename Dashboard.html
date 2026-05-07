@@ -1,98 +1,210 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>สรุปคะแนนรวมทั้งหมด</title>
     <style>
-        body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
-        .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h2 { color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 10px; }
-        .controls { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
-        th { background: #1a73e8; color: white; padding: 12px; text-align: left; }
-        td { padding: 10px; border-bottom: 1px solid #eee; }
-        tr:hover { background: #f8f9fa; }
-        .badge { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
-        .bg-info { background: #e3f2fd; color: #0d47a1; }
-        input { padding: 10px; border: 1px solid #ddd; border-radius: 5px; flex: 1; min-width: 250px; }
-        
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #1a73e8;
+            border-bottom: 2px solid #1a73e8;
+            padding-bottom: 10px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        th {
+            background: #1a73e8;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .bg-info {
+            background: #e3f2fd;
+            color: #0d47a1;
+        }
+
+        input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            flex: 1;
+            min-width: 250px;
+        }
+
         /* ตกแต่งปุ่ม */
-        .btn { padding: 10px 20px; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; color: white; transition: 0.2s; }
-        .btn-refresh { background: #34a853; }
-        .btn-refresh:hover { background: #2b8a44; }
-        .btn-print { background: #d32f2f; }
-        .btn-print:hover { background: #b71c1c; }
+        .btn {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            color: white;
+            transition: 0.2s;
+        }
+
+        .btn-refresh {
+            background: #34a853;
+        }
+
+        .btn-refresh:hover {
+            background: #2b8a44;
+        }
+
+        .btn-print {
+            background: #d32f2f;
+        }
+
+        .btn-print:hover {
+            background: #b71c1c;
+        }
 
         /* การตั้งค่าเวลาสั่งพิมพ์เป็น PDF */
         @media print {
-            .controls, .back-link { display: none !important; } /* ซ่อนปุ่มและช่องค้นหา */
-            body { background: white; padding: 0; }
-            .container { box-shadow: none; max-width: 100%; width: 100%; padding: 0; margin: 0; border-radius: 0; }
-            table { font-size: 12px; }
-            th { background: #eee !important; color: #000 !important; } /* เปลี่ยนสีหัวตารางให้ประหยัดหมึก/อ่านง่าย */
+
+            .controls,
+            .back-link {
+                display: none !important;
+            }
+
+            /* ซ่อนปุ่มและช่องค้นหา */
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .container {
+                box-shadow: none;
+                max-width: 100%;
+                width: 100%;
+                padding: 0;
+                margin: 0;
+                border-radius: 0;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            th {
+                background: #eee !important;
+                color: #000 !important;
+            }
+
+            /* เปลี่ยนสีหัวตารางให้ประหยัดหมึก/อ่านง่าย */
         }
     </style>
 </head>
+
 <body>
 
-<div class="container">
-    <div class="back-link" style="margin-bottom: 20px;">
-        <a href="index.html" style="text-decoration: none; color: #1a73e8; font-weight: bold; font-size: 16px;">
-            ⬅️ กลับหน้าหลัก (กรอกคะแนน)
-        </a>
+    <div class="container">
+        <div class="back-link" style="margin-bottom: 20px;">
+            <a href="Index.html" style="text-decoration: none; color: #1a73e8; font-weight: bold; font-size: 16px;">
+                ⬅️ กลับหน้าหลัก (กรอกคะแนน)
+            </a>
+        </div>
+
+        <h2>📊 รายการคะแนนที่บันทึกแล้วทั้งหมด</h2>
+
+        <div class="controls">
+            <input type="text" id="searchInput" onkeyup="filterTable()"
+                placeholder="🔍 ค้นหาด้วย ชื่อ, รหัสนิสิต หรือ รายวิชา...">
+            <button class="btn btn-refresh" onclick="loadDashboard()">🔄 รีเฟรชข้อมูล</button>
+            <button class="btn btn-print" onclick="window.print()">📕 พิมพ์เป็น PDF</button>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table id="summaryTable">
+                <thead>
+                    <tr>
+                        <th>วัน-เวลาที่บันทึก</th>
+                        <th>รายวิชา</th>
+                        <th>กลุ่ม</th>
+                        <th>รหัสนิสิต</th>
+                        <th>ชื่อ-สกุล</th>
+                        <th>อาจารย์ผู้ประเมิน</th>
+                    </tr>
+                </thead>
+                <tbody id="dashboardBody">
+                    <tr>
+                        <td colspan="6" style="text-align:center;">⏳ กำลังโหลดข้อมูล...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <h2>📊 รายการคะแนนที่บันทึกแล้วทั้งหมด</h2>
-    
-    <div class="controls">
-        <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="🔍 ค้นหาด้วย ชื่อ, รหัสนิสิต หรือ รายวิชา...">
-        <button class="btn btn-refresh" onclick="loadDashboard()">🔄 รีเฟรชข้อมูล</button>
-        <button class="btn btn-print" onclick="window.print()">📕 พิมพ์เป็น PDF</button>
-    </div>
+    <script>
+        // 🚩 เปลี่ยน API_URL ให้เป็นของคุณเหมือนเดิม
+        const API_URL = "https://script.google.com/macros/s/AKfycbxH8kYNTl0b1amZeZ4S9qCKHIjcYxz-okb4wFyUCIzE8YM1qk0UIQXWFaXTXPl-WRrp/exec";
 
-    <div style="overflow-x: auto;">
-        <table id="summaryTable">
-            <thead>
-                <tr>
-                    <th>วัน-เวลาที่บันทึก</th>
-                    <th>รายวิชา</th>
-                    <th>กลุ่ม</th>
-                    <th>รหัสนิสิต</th>
-                    <th>ชื่อ-สกุล</th>
-                    <th>อาจารย์ผู้ประเมิน</th>
-                </tr>
-            </thead>
-            <tbody id="dashboardBody">
-                <tr><td colspan="6" style="text-align:center;">⏳ กำลังโหลดข้อมูล...</td></tr>
-            </tbody>
-        </table>
-    </div>
-</div>
+        async function loadDashboard() {
+            const tbody = document.getElementById('dashboardBody');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">⏳ กำลังดึงข้อมูลล่าสุด...</td></tr>';
 
-<script>
-    // 🚩 เปลี่ยน API_URL ให้เป็นของคุณเหมือนเดิม
-    const API_URL = "https://script.google.com/macros/s/AKfycbyGJZSFcQXxIx4aIxi3rDaQULSE3Tm43tlVHiIyuMep07oK7REfYIAIVc18Fbbo5rRH/exec"; 
+            try {
+                const res = await fetch(`${API_URL}?action=getHistory`);
+                const data = await res.json();
 
-    async function loadDashboard() {
-        const tbody = document.getElementById('dashboardBody');
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">⏳ กำลังดึงข้อมูลล่าสุด...</td></tr>';
-        
-        try {
-            const res = await fetch(`${API_URL}?action=getHistory`);
-            const data = await res.json();
-            
-            if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">❌ ยังไม่มีข้อมูลคะแนนในระบบ</td></tr>';
-                return;
-            }
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">❌ ยังไม่มีข้อมูลคะแนนในระบบ</td></tr>';
+                    return;
+                }
 
-            tbody.innerHTML = "";
-            data.forEach(item => {
-                const tr = document.createElement('tr');
-                
-                // แก้ไขคีย์จาก "ชื่อ-นามสกุล" เป็น "ชื่อ-สกุล" ให้ตรงกับใน Google Sheets
-                tr.innerHTML = `
+                tbody.innerHTML = "";
+                data.forEach(item => {
+                    const tr = document.createElement('tr');
+
+                    // แก้ไขคีย์จาก "ชื่อ-นามสกุล" เป็น "ชื่อ-สกุล" ให้ตรงกับใน Google Sheets
+                    tr.innerHTML = `
                     <td style="color:#666; font-size:12px;">${item["Timestamp"] || '-'}</td>
                     <td><span class="badge bg-info">${item["รายวิชา"] || '-'}</span></td>
                     <td>${item["กลุ่ม"] || '-'}</td>
@@ -100,36 +212,37 @@
                     <td>${item["ชื่อ-สกุล"] || '-'}</td>
                     <td>${item["อาจารย์ผู้ประเมิน"] || '-'}</td>
                 `;
-                tbody.appendChild(tr);
-            });
-        } catch (e) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:red;">❌ ไม่สามารถโหลดข้อมูลได้</td></tr>';
-        }
-    }
-
-    // ฟังก์ชันสำหรับค้นหาข้อความในตาราง
-    function filterTable() {
-        const input = document.getElementById("searchInput");
-        const filter = input.value.toUpperCase();
-        const table = document.getElementById("summaryTable");
-        const tr = table.getElementsByTagName("tr");
-
-        for (let i = 1; i < tr.length; i++) {
-            let found = false;
-            const tds = tr[i].getElementsByTagName("td");
-            for (let j = 0; j < tds.length; j++) {
-                if (tds[j].textContent.toUpperCase().indexOf(filter) > -1) {
-                    found = true;
-                    break;
-                }
+                    tbody.appendChild(tr);
+                });
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:red;">❌ ไม่สามารถโหลดข้อมูลได้</td></tr>';
             }
-            tr[i].style.display = found ? "" : "none";
         }
-    }
 
-    // เรียกดึงข้อมูลเมื่อโหลดหน้าเว็บ
-    window.onload = loadDashboard;
-</script>
+        // ฟังก์ชันสำหรับค้นหาข้อความในตาราง
+        function filterTable() {
+            const input = document.getElementById("searchInput");
+            const filter = input.value.toUpperCase();
+            const table = document.getElementById("summaryTable");
+            const tr = table.getElementsByTagName("tr");
+
+            for (let i = 1; i < tr.length; i++) {
+                let found = false;
+                const tds = tr[i].getElementsByTagName("td");
+                for (let j = 0; j < tds.length; j++) {
+                    if (tds[j].textContent.toUpperCase().indexOf(filter) > -1) {
+                        found = true;
+                        break;
+                    }
+                }
+                tr[i].style.display = found ? "" : "none";
+            }
+        }
+
+        // เรียกดึงข้อมูลเมื่อโหลดหน้าเว็บ
+        window.onload = loadDashboard;
+    </script>
 
 </body>
+
 </html>
