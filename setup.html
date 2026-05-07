@@ -320,43 +320,43 @@
         // ฟังก์ชันบันทึกข้อมูล
         // ==========================================
         async function saveSetup() {
-            const courseName = document.getElementById('courseName').value;
-            if (!courseName) return alert("กรุณากรอกชื่อรายวิชาก่อนบันทึกครับ");
-
-            const btn = document.getElementById('btnSaveMain');
+            const btn = document.getElementById('btnSave'); // ตรวจสอบว่า ID ปุ่มตรงกันไหม
             btn.innerText = "⏳ กำลังบันทึกข้อมูล...";
             btn.disabled = true;
 
-            const criteriaData = [];
-            document.querySelectorAll('#criteriaBody tr').forEach(tr => {
-                const catName = tr.querySelector('.cat-name').value;
-                const weight = tr.querySelector('.cat-weight').value;
-                tr.querySelectorAll('.sub-row').forEach(sub => {
-                    criteriaData.push({
-                        category: catName, weight: weight,
-                        subName: sub.querySelector('.sub-name').value,
-                        max: sub.querySelector('.sub-max').value,
-                        mpl: sub.querySelector('.sub-mpl').value
-                    });
-                });
-            });
-
-            const payload = {
-                action: 'saveSetup',
-                courseName: courseName, courseGroup: document.getElementById('courseGroup').value,
-                interval: document.getElementById('interval').value, department: document.getElementById('department').value,
-                startDate: document.getElementById('startDate').value, endDate: document.getElementById('endDate').value,
-                teacher: document.getElementById('teacher').value, headTeacher: document.getElementById('headTeacher').value,
-                headDept: document.getElementById('headDept').value, criteria: criteriaData
-            };
-
             try {
-                await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-                alert("✅ บันทึกข้อมูลเรียบร้อยแล้ว!");
-                location.reload();
-            } catch (error) {
-                alert("❌ ไม่สามารถเชื่อมต่อกับระบบได้");
-                btn.innerText = "💾 บันทึกการตั้งค่ารายวิชานี้";
+                // ใช้ ?.value เพื่อป้องกันถ้าหา ID ไม่เจอ จะได้ไม่พัง (Crash)
+                const payload = {
+                    action: 'saveSetup',
+                    courseName: document.getElementById('courseName')?.value || "",
+                    courseGroup: document.getElementById('courseGroup')?.value || "",
+                    courseInterval: document.getElementById('courseInterval')?.value || "0",
+                    courseDept: document.getElementById('courseDept')?.value || "",
+                    startDate: document.getElementById('startDate')?.value || "",
+                    endDate: document.getElementById('endDate')?.value || "",
+                    teacherName: document.getElementById('teacherName')?.value || "",
+                    headName: document.getElementById('headName')?.value || "", // ตรวจสอบ ID นี้เป็นพิเศษ
+                    // ... (ข้อมูลอื่นๆ)
+                };
+
+                // ลองพิมพ์ดูใน Console ว่าดึงค่ามาครบไหม (กด F12 ดูได้)
+                console.log("Data to save:", payload);
+
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' }, // ป้องกันเรื่อง CORS
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await res.json();
+                alert('✅ บันทึกเกณฑ์คะแนนเรียบร้อยแล้ว!');
+
+            } catch (e) {
+                console.error("Error saving setup:", e);
+                alert('❌ บันทึกไม่สำเร็จ: ' + e.message);
+            } finally {
+                // ไม่ว่าจะสำเร็จหรือพัง ต้องคืนค่าปุ่มให้กดได้ใหม่
+                btn.innerText = "💾 บันทึกการตั้งค่า";
                 btn.disabled = false;
             }
         }
