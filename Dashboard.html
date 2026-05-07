@@ -173,7 +173,7 @@
                         <th>อาจารย์ผู้ประเมิน</th>
                     </tr>
                 </thead>
-                <tbody id="dashboardBody">
+                <tbody id="DashboardBody">
                     <tr>
                         <td colspan="6" style="text-align:center;">⏳ กำลังโหลดข้อมูล...</td>
                     </tr>
@@ -187,7 +187,7 @@
         const API_URL = "https://script.google.com/macros/s/AKfycbxH8kYNTl0b1amZeZ4S9qCKHIjcYxz-okb4wFyUCIzE8YM1qk0UIQXWFaXTXPl-WRrp/exec";
 
         async function loadDashboard() {
-            const tbody = document.getElementById('dashboardBody');
+            const tbody = document.getElementById('DashboardBody');
             tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">⏳ กำลังดึงข้อมูลล่าสุด...</td></tr>';
 
             try {
