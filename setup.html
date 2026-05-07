@@ -243,7 +243,7 @@
 
             <div class="form-group">
                 <label>ชื่อหัวหน้าภาค/กลุ่มงาน</label>
-                <input type="text" id="headName" placeholder="">
+                <input type="text" id="headName" placeholder="ระบุชื่อหัวหน้ากลุ่มงาน">
             </div>
         </div>
 
@@ -320,31 +320,37 @@
         // ฟังก์ชันบันทึกข้อมูล
         // ==========================================
         async function saveSetup() {
-            const btn = document.getElementById('btnSave'); // ตรวจสอบว่า ID ปุ่มตรงกันไหม
-            btn.innerText = "⏳ กำลังบันทึกข้อมูล...";
-            btn.disabled = true;
+            const btnSave = document.getElementById('btnSave');
+            btnSave.innerText = "⏳ กำลังบันทึกข้อมูล...";
+            btnSave.disabled = true;
 
             try {
-                // ใช้ ?.value เพื่อป้องกันถ้าหา ID ไม่เจอ จะได้ไม่พัง (Crash)
-                const payload = {
-                    action: 'saveSetup',
-                    courseName: document.getElementById('courseName')?.value || "",
-                    courseGroup: document.getElementById('courseGroup')?.value || "",
-                    courseInterval: document.getElementById('courseInterval')?.value || "0",
-                    courseDept: document.getElementById('courseDept')?.value || "",
-                    startDate: document.getElementById('startDate')?.value || "",
-                    endDate: document.getElementById('endDate')?.value || "",
-                    teacherName: document.getElementById('teacherName')?.value || "",
-                    headName: document.getElementById('headName')?.value || "", // ตรวจสอบ ID นี้เป็นพิเศษ
-                    // ... (ข้อมูลอื่นๆ)
+                // --- 🔍 จุดที่ต้องเช็ค: ID ใน () ต้องตรงกับใน HTML ของคุณเป๊ะๆ ---
+                const getVal = (id) => {
+                    const el = document.getElementById(id);
+                    if (!el) {
+                        console.error(`❌ หา ID "${id}" ไม่เจอในหน้า HTML!`);
+                        return ""; // ถ้าหาไม่เจอ ให้ส่งค่าว่างแทน โค้ดจะได้ไม่พัง
+                    }
+                    return el.value;
                 };
 
-                // ลองพิมพ์ดูใน Console ว่าดึงค่ามาครบไหม (กด F12 ดูได้)
-                console.log("Data to save:", payload);
+                const payload = {
+                    action: 'saveSetup',
+                    courseName: getVal('courseName'),
+                    courseGroup: getVal('courseGroup'),
+                    courseInterval: getVal('courseInterval'),
+                    courseDept: getVal('courseDept'),
+                    startDate: getVal('startDate'),
+                    endDate: getVal('endDate'),
+                    teacherName: getVal('teacherName'),
+                    headName: getVal('headName') // <--- ตัวนี้มักจะลืมสร้างช่อง input ไว้
+                };
 
+                // ส่งข้อมูลไปที่ Google Apps Script
                 const res = await fetch(API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' }, // ป้องกันเรื่อง CORS
+                    headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify(payload)
                 });
 
@@ -352,12 +358,12 @@
                 alert('✅ บันทึกเกณฑ์คะแนนเรียบร้อยแล้ว!');
 
             } catch (e) {
-                console.error("Error saving setup:", e);
+                console.error("Error:", e);
                 alert('❌ บันทึกไม่สำเร็จ: ' + e.message);
             } finally {
-                // ไม่ว่าจะสำเร็จหรือพัง ต้องคืนค่าปุ่มให้กดได้ใหม่
-                btn.innerText = "💾 บันทึกการตั้งค่า";
-                btn.disabled = false;
+                // 🌟 สำคัญมาก: ไม่ว่าจะสำเร็จหรือพลาด ต้องคืนค่าปุ่มให้กลับมาปกติ
+                btnSave.innerText = "💾 บันทึกการตั้งค่ารายวิชานี้";
+                btnSave.disabled = false;
             }
         }
 
