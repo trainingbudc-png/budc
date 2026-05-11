@@ -548,6 +548,27 @@
             alert(`🗑️ ลบวิชา ${name} เรียบร้อยแล้ว`);
             location.reload();
         }
+        let masterCourses = [];
+
+        // 🟢 โหลดรายวิชาจากฐานข้อมูลมาใส่ Dropdown ทันทีที่เปิดหน้าเว็บ
+        window.addEventListener('load', async () => {
+            try {
+                const res = await fetch(`${API_URL}?action=getMasterCourses`);
+                masterCourses = await res.json();
+                const sel = document.getElementById('courseName');
+                sel.innerHTML = '<option value="">-- กรุณาเลือกรายวิชา --</option>';
+                masterCourses.forEach(c => {
+                    sel.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+                });
+            } catch (e) { console.error(e); }
+        });
+
+        // 🟢 ฟังก์ชันดึงกลุ่มงานมาเติมอัตโนมัติ เมื่อเรากดเลือกวิชา
+        function autoFillDept() {
+            const selVal = document.getElementById('courseName').value;
+            const found = masterCourses.find(c => c.name === selVal);
+            document.getElementById('department').value = found ? found.dept : "";
+        }
     </script>
 </body>
 
