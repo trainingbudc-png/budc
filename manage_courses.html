@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <title>จัดการฐานข้อมูลวิชา</title>
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #1a73e8;
+            border-bottom: 2px solid #1a73e8;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background: #1a73e8;
+        }
+
+        .btn-danger {
+            background: #d32f2f;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #eee;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background: #f8f9fa;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <a href="setup.html" style="text-decoration: none; color: #1a73e8; font-weight: bold;">⬅️ กลับหน้าตั้งค่ารายวิชา
+            (Setup)</a>
+        <h2>📚 จัดการฐานข้อมูลรายวิชา และ กลุ่มงาน</h2>
+
+        <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            <h4 style="margin-top: 0; color: #0d47a1;">➕ เพิ่มรายวิชาใหม่เข้าระบบ</h4>
+            <div class="form-group">
+                <label>ชื่อรายวิชา</label>
+                <input type="text" id="newCourse" placeholder="เช่น คณิตศาสตร์ 1">
+            </div>
+            <div class="form-group">
+                <label>กลุ่มงาน / ภาควิชา</label>
+                <input type="text" id="newDept" placeholder="เช่น วิทยาศาสตร์และคณิตศาสตร์">
+            </div>
+            <button class="btn btn-primary" onclick="addCourse()" id="btnAdd">💾 บันทึกวิชาใหม่</button>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>รายวิชา</th>
+                    <th>กลุ่มงาน/ภาควิชา</th>
+                    <th style="width: 100px; text-align: center;">จัดการ</th>
+                </tr>
+            </thead>
+            <tbody id="courseTable">
+                <tr>
+                    <td colspan="3" style="text-align:center;">⏳ กำลังโหลดข้อมูล...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbxH8kYNTl0b1amZeZ4S9qCKHIjcYxz-okb4wFyUCIzE8YM1qk0UIQXWFaXTXPl-WRrp/exec";
+
+        async function loadCourses() {
+            const tbody = document.getElementById('courseTable');
+            try {
+                const res = await fetch(`${API_URL}?action=getMasterCourses`);
+                const data = await res.json();
+                tbody.innerHTML = "";
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">ยังไม่มีข้อมูลวิชาในระบบ</td></tr>';
+                    return;
+                }
+                data.forEach(c => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><b>${c.name}</b></td>
+                            <td>${c.dept}</td>
+                            <td style="text-align:center;">
+                                <button class="btn btn-danger" onclick="deleteCourse('${c.name}')">ลบ</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (e) { tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:red;">โหลดข้อมูลไม่สำเร็จ</td></tr>'; }
+        }
+
+        async function addCourse() {
+            const name = document.getElementById('newCourse').value.trim();
+            const dept = document.getElementById('newDept').value.trim();
+            if (!name || !dept) return alert("กรุณากรอกข้อมูลให้ครบทั้ง 2 ช่องครับ");
+
+            const btn = document.getElementById('btnAdd');
+            btn.disabled = true; btn.innerText = "⏳ กำลังบันทึก...";
+
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: 'saveMasterCourse', courseName: name, department: dept })
+                });
+                const result = await res.json();
+                if (result.error) alert("❌ " + result.error);
+                else {
+                    alert("✅ บันทึกรายวิชาสำเร็จ!");
+                    document.getElementById('newCourse').value = "";
+                    document.getElementById('newDept').value = "";
+                    loadCourses();
+                }
+            } catch (e) { alert("❌ เกิดข้อผิดพลาด"); }
+            btn.disabled = false; btn.innerText = "💾 บันทึกวิชาใหม่";
+        }
+
+        async function deleteCourse(name) {
+            if (!confirm(`⚠️ ยืนยันการลบวิชา "${name}" ออกจากฐานข้อมูล?`)) return;
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: 'deleteMasterCourse', courseName: name })
+                });
+                loadCourses();
+            } catch (e) { alert("❌ เกิดข้อผิดพลาดในการลบ"); }
+        }
+
+        window.onload = loadCourses;
+    </script>
+</body>
+
+</html>
