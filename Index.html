@@ -211,7 +211,7 @@
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbyGJZSFcQXxIx4aIxi3rDaQULSE3Tm43tlVHiIyuMep07oK7REfYIAIVc18Fbbo5rRH/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbxH8kYNTl0b1amZeZ4S9qCKHIjcYxz-okb4wFyUCIzE8YM1qk0UIQXWFaXTXPl-WRrp/exec";
 
         // ฟังก์ชันดึงข้อมูลกลุ่ม/อาจารย์อัตโนมัติ
         async function autoFillData() {
@@ -293,7 +293,8 @@
 
         async function submitData() {
             const btn = document.querySelector('.btn-save');
-            btn.disabled = true; btn.innerText = "⏳ กำลังบันทึกข้อมูล...";
+            btn.disabled = true;
+            btn.innerText = "⏳ กำลังบันทึกข้อมูลลงชีท...";
 
             let scores = {};
             document.querySelectorAll('.score-input').forEach(input => {
@@ -310,46 +311,51 @@
                 scores: scores
             };
 
-            // 1. เปลี่ยนปุ่มเป็นกำลังบันทึกและล็อคปุ่มไว้
-            const btn = document.querySelector('button[onclick="saveScore()"]'); // หรือ ID ของปุ่มบันทึก
-            btn.innerText = "⏳ กำลังบันทึกข้อมูลไปที่ Sheets...";
-            btn.disabled = true;
-            btn.style.opacity = "0.7";
-
             try {
-                // ส่งข้อมูลไป Google Sheets
-                await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+                // 🟢 เพิ่ม headers text/plain เพื่อแก้ปัญหา Google บล็อกการส่งข้อมูล (CORS)
+                await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8',
+                    },
+                    body: JSON.stringify(payload)
+                });
 
                 alert('✅ บันทึกคะแนนสำเร็จ!');
 
-                // 2. เคลียร์แค่ช่องคะแนน รหัสนิสิต และชื่อ (ไม่ต้องรีเฟรชหน้าใหม่ให้เสียเวลา)
+                // 🟢 เคลียร์ข้อมูลนิสิตออก เพื่อเตรียมกรอกคนต่อไป (ไม่รีเฟรชหน้าเว็บให้ค้าง)
                 document.querySelectorAll('.score-input').forEach(input => input.value = "");
                 document.getElementById('studentId').value = "";
                 document.getElementById('studentName').value = "";
 
-                // คืนค่าปุ่มให้กลับมาพร้อมกดใหม่
-                btn.innerText = "💾 บันทึกคะแนน";
+                // คืนค่าปุ่ม
                 btn.disabled = false;
-                btn.style.opacity = "1";
+                btn.innerText = "💾 บันทึกคะแนน";
 
-                // โฟกัสไปที่ช่องรหัสนิสิตเพื่อพร้อมพิมพ์คนต่อไปทันที
-                document.getElementById('studentId').focus();
+                // 🟢 เด้งกลับไปหน้า 3 ให้อัตโนมัติ เพื่อพิมพ์รหัสนิสิตคนต่อไปได้เลย
+                prevStep(3);
 
             } catch (e) {
-                alert('❌ ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่');
+                console.error(e);
+                alert('❌ เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่');
                 btn.disabled = false;
                 btn.innerText = "💾 บันทึกคะแนน";
-                btn.style.opacity = "1";
             }
         }
-
         window.onload = async () => {
             try {
                 const res = await fetch(`${API_URL}?action=getCourses`);
-                const courses = await res.json();
+                const courses = await res.json(); // ข้อมูลมาเป็น [{name: "วิชา", dept: "กลุ่ม"}]
                 const sel = document.getElementById('course');
-                sel.innerHTML = '<option value="">-- เลือกรายวิชา --</option>' + courses.map(c => `<option value="${c}">${c}</option>`).join('');
-            } catch (e) { console.error("Load courses error:", e); }
+
+                sel.innerHTML = '<option value="">-- เลือกรายวิชา --</option>';
+                courses.forEach(c => {
+                    // ดึงเฉพาะ c.name มาแสดงใน Dropdown
+                    sel.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+                });
+            } catch (e) {
+                console.error("Load courses error:", e);
+            }
         };
     </script>
 </body>

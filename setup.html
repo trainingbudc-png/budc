@@ -221,8 +221,19 @@
                 <input type="number" id="interval" step="0.1" value="...">
             </div>
             <div class="form-group">
-                <label>กลุ่มงาน:</label>
-                <input type="text" id="department" value="...">
+                <label>ชื่อรายวิชา</label>
+                <select id="courseSelect" onchange="autoFillDepartment()"
+                    style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; width: 100%; margin-bottom: 5px;">
+                    <option value="">⏳ กำลังโหลดวิชา...</option>
+                </select>
+                <input type="text" id="courseName" placeholder="✨ พิมพ์ชื่อวิชาใหม่ที่นี่..."
+                    style="display:none; border-color: #1a73e8;">
+            </div>
+
+            <div class="form-group">
+                <label>กลุ่มงาน/ภาควิชา</label>
+                <input type="text" id="department"
+                    placeholder="เลือกวิชาแล้วกลุ่มงานจะขึ้นอัตโนมัติ (หรือพิมพ์ใหม่ได้เลย)">
             </div>
             <div class="form-group">
                 <label>วันที่เริ่ม:</label>
@@ -265,6 +276,47 @@
     </div>
 
     <script>
+        let courseDataList = []; // ตัวแปรเก็บข้อมูลวิชาและกลุ่มงาน
+
+        // ดึงข้อมูลมาใส่ Dropdown ตอนเปิดหน้าเว็บ
+        window.addEventListener('load', async () => {
+            try {
+                const res = await fetch(`${API_URL}?action=getCourses`);
+                courseDataList = await res.json();
+
+                const sel = document.getElementById('courseSelect');
+                sel.innerHTML = '<option value="">-- เลือกรายวิชาที่มีอยู่ --</option>';
+                sel.innerHTML += '<option value="NEW" style="color: blue; font-weight: bold;">➕ + เพิ่มวิชาใหม่ (พิมพ์เอง)</option>';
+
+                courseDataList.forEach(c => {
+                    sel.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+                });
+            } catch (e) {
+                console.error("Load courses error:", e);
+            }
+        });
+
+        // ฟังก์ชันอัตโนมัติ: ดึงกลุ่มงานมาใส่เมื่อเลือกวิชา
+        function autoFillDepartment() {
+            const sel = document.getElementById('courseSelect');
+            const txtCourse = document.getElementById('courseName');
+            const txtDept = document.getElementById('department');
+
+            if (sel.value === "NEW") {
+                // ถ้าเลือก "เพิ่มวิชาใหม่" -> เปิดช่องให้พิมพ์เอง
+                txtCourse.style.display = "block";
+                txtCourse.value = "";
+                txtDept.value = "";
+                txtCourse.focus();
+            } else {
+                // ถ้าเลือกวิชาเดิม -> ซ่อนช่องพิมพ์ และดึงกลุ่มงานมาใส่ให้เลย
+                txtCourse.style.display = "none";
+                txtCourse.value = sel.value; // แอบเอาค่าส่งให้ตัวบันทึกข้อมูล
+
+                const found = courseDataList.find(c => c.name === sel.value);
+                txtDept.value = found && found.dept ? found.dept : "";
+            }
+        }
         // 🚩 เปลี่ยนตรงนี้ให้เป็น URL ของ Google Apps Script ของคุณ
         const API_URL = "https://script.google.com/macros/s/AKfycbxH8kYNTl0b1amZeZ4S9qCKHIjcYxz-okb4wFyUCIzE8YM1qk0UIQXWFaXTXPl-WRrp/exec";
 
