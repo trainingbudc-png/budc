@@ -184,8 +184,15 @@
 
         <div class="form-grid">
             <div class="form-group">
-                <label>ชื่อรายวิชา / รหัสวิชา:</label>
-                <input type="text" id="courseName" placeholder="เช่น 0101234 สรีรวิทยา">
+                <label>ชื่อรายวิชา (เลือกจากฐานข้อมูล)</label>
+                <select id="courseName" onchange="autoFillDept()"
+                    style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                    <option value="">⏳ กำลังโหลดวิชา...</option>
+                </select>
+                <div style="margin-top: 5px; font-size: 13px;">
+                    <a href="manage_courses.html" style="color: #1a73e8; text-decoration: none;">⚙️ +
+                        เพิ่มรายวิชาและกลุ่มงานใหม่</a>
+                </div>
             </div>
             <div class="form-group">
                 <label>กลุ่ม / Section:</label>
@@ -229,11 +236,11 @@
                 <input type="text" id="courseName" placeholder="✨ พิมพ์ชื่อวิชาใหม่ที่นี่..."
                     style="display:none; border-color: #1a73e8;">
             </div>
-
             <div class="form-group">
                 <label>กลุ่มงาน/ภาควิชา</label>
-                <input type="text" id="department"
-                    placeholder="เลือกวิชาแล้วกลุ่มงานจะขึ้นอัตโนมัติ (หรือพิมพ์ใหม่ได้เลย)">
+                <input type="text" id="department" readonly
+                    style="background-color: #e9ecef; cursor: not-allowed; width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;"
+                    placeholder="เลือกวิชาด้านบน แล้วระบบจะดึงมาอัตโนมัติ">
             </div>
             <div class="form-group">
                 <label>วันที่เริ่ม:</label>
